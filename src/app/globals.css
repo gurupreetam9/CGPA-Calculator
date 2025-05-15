@@ -8,99 +8,100 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 88%; /* Light Grey (#E0E0E0) */
-    --foreground: 0 0% 20%; /* Dark Grey for text */
+    --background: 0 0% 96%; /* Light Greyish White */
+    --foreground: 270 5% 25%; /* Dark Slate Grey, slightly desaturated violet hint */
 
     --card: 0 0% 100%; /* White */
-    --card-foreground: 0 0% 20%; /* Dark Grey text on cards */
+    --card-foreground: 270 5% 25%; /* Dark Slate Grey */
 
     --popover: 0 0% 100%; /* White */
-    --popover-foreground: 0 0% 20%; /* Dark Grey */
+    --popover-foreground: 270 5% 25%; /* Dark Slate Grey */
 
-    --primary: 174 45% 58%; /* Soft Teal (#4DB6AC) */
-    --primary-foreground: 0 0% 100%; /* White text on Teal */
+    --primary: 270 60% 65%; /* Medium Violet */
+    --primary-foreground: 270 15% 98%; /* Almost White, with a hint of violet coolness */
 
-    --secondary: 0 0% 92%; /* Lighter Grey for secondary elements */
-    --secondary-foreground: 0 0% 25%; /* Darker Grey for text on secondary */
+    --secondary: 270 10% 92%; /* Lighter Grey with violet undertone */
+    --secondary-foreground: 270 8% 30%; /* Darker Grey with violet undertone */
 
-    --muted: 0 0% 80%; /* Muted Grey */
-    --muted-foreground: 0 0% 40%; /* Muted text */
+    --muted: 270 10% 85%; /* Muted Grey with violet undertone */
+    --muted-foreground: 270 5% 45%; /* Muted text with violet undertone */
 
-    --accent: 46 100% 65%; /* Amber (#FFD54F) */
-    --accent-foreground: 46 100% 10%; /* Dark Brown/Black text on Amber */
+    --accent: 285 65% 70%; /* Magenta-Violet */
+    --accent-foreground: 285 65% 15%; /* Dark Violet for text on accent */
 
-    --destructive: 0 72% 51%; /* A slightly softer red */
-    --destructive-foreground: 0 0% 98%; /* White */
+    --destructive: 0 72% 51%; /* A slightly softer red - unchanged for clarity */
+    --destructive-foreground: 0 0% 98%; /* White - unchanged */
 
-    --border: 0 0% 78%; /* Border color, for dividers etc. */
-    --input: 0 0% 70%; /* Input border color, as per ShadCN convention for border */
-    --ring: 174 45% 58%; /* Soft Teal for focus rings */
+    --border: 270 10% 80%; /* Border color, with violet undertone */
+    --input: 270 10% 75%; /* Input border color, with violet undertone */
+    --ring: 270 60% 65%; /* Medium Violet for focus rings */
     
     --radius: 0.5rem;
 
-    /* Chart colors (defaults) */
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    /* Chart colors - Violet Themed */
+    --chart-1: 270 70% 60%; /* Main Violet */
+    --chart-2: 280 60% 55%; /* Deeper Violet/Purple */
+    --chart-3: 260 65% 65%; /* Lighter/Cooler Violet */
+    --chart-4: 275 50% 70%; /* Lavender */
+    --chart-5: 290 55% 60%; /* Magenta/Pinkish Violet */
 
-    /* Sidebar specific colors (defaults, slightly adapted) */
-    --sidebar-background: 0 0% 96%; 
-    --sidebar-foreground: 0 0% 20%;
-    --sidebar-primary: 174 45% 58%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 174 45% 65%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 85%;
-    --sidebar-ring: 174 45% 58%;
+    /* Sidebar specific colors - Violet Themed */
+    --sidebar-background: 270 15% 97%; /* Very light violet-tinted grey */
+    --sidebar-foreground: 270 10% 20%; /* Dark violet-tinted grey */
+    --sidebar-primary: 270 60% 65%; /* Medium Violet */
+    --sidebar-primary-foreground: 270 15% 98%; /* Almost White */
+    --sidebar-accent: 270 60% 70%; /* Slightly lighter/brighter Violet */
+    --sidebar-accent-foreground: 270 15% 98%; /* Almost White */
+    --sidebar-border: 270 10% 88%; /* Light violet-tinted border */
+    --sidebar-ring: 270 60% 65%; /* Medium Violet */
   }
 
   .dark {
-    /* Dark theme based on a modern, cool-toned palette */
-    --background: 220 15% 10%; /* Very dark blue-gray */
-    --foreground: 220 10% 85%; /* Light grayish blue */
+    /* Dark theme with Violet accents */
+    --background: 270 10% 12%; /* Very dark desaturated violet */
+    --foreground: 270 10% 88%; /* Light grayish violet */
 
-    --card: 220 15% 15%; /* Slightly lighter dark blue-gray for cards */
-    --card-foreground: 220 10% 85%;
+    --card: 270 10% 18%; /* Slightly lighter dark violet for cards */
+    --card-foreground: 270 10% 88%;
 
-    --popover: 220 15% 15%;
-    --popover-foreground: 220 10% 85%;
+    --popover: 270 10% 18%;
+    --popover-foreground: 270 10% 88%;
 
-    --primary: 174 45% 58%; /* Soft Teal - remains vibrant */
-    --primary-foreground: 0 0% 100%; /* White */
+    --primary: 270 55% 60%; /* Darker Medium Violet */
+    --primary-foreground: 270 10% 95%; /* Light Grey with violet hint */
 
-    --secondary: 220 15% 20%; /* Darker secondary elements */
-    --secondary-foreground: 220 10% 70%;
+    --secondary: 270 10% 22%; /* Darker secondary elements with violet hint */
+    --secondary-foreground: 270 8% 75%;
 
-    --muted: 220 15% 25%;
-    --muted-foreground: 220 10% 50%;
+    --muted: 270 10% 28%;
+    --muted-foreground: 270 5% 55%;
 
-    --accent: 46 100% 65%; /* Amber - remains vibrant */
-    --accent-foreground: 46 100% 10%; /* Dark Brown/Black */
+    --accent: 285 60% 65%; /* Darker Magenta-Violet */
+    --accent-foreground: 285 10% 90%; /* Light text on dark accent */
 
-    --destructive: 0 60% 50%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 60% 50%; /* Unchanged */
+    --destructive-foreground: 0 0% 98%; /* Unchanged */
 
-    --border: 220 15% 25%;
-    --input: 220 15% 30%; /* Input border color in dark mode */
-    --ring: 174 45% 58%;
+    --border: 270 10% 28%; /* Dark violet-tinted border */
+    --input: 270 10% 33%; /* Input border color in dark mode, violet hint */
+    --ring: 270 55% 60%; /* Darker Medium Violet */
 
-    /* Chart colors for dark mode (defaults) */
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    /* Chart colors for dark mode - Violet Themed */
+    --chart-1: 270 70% 65%;
+    --chart-2: 280 60% 60%;
+    --chart-3: 260 65% 70%;
+    --chart-4: 275 50% 75%;
+    --chart-5: 290 55% 65%;
     
-    --sidebar-background: 220 15% 12%;
-    --sidebar-foreground: 220 10% 85%;
-    --sidebar-primary: 174 45% 58%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 174 45% 50%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 220 15% 20%;
-    --sidebar-ring: 174 45% 58%;
+    /* Sidebar specific colors for dark mode - Violet Themed */
+    --sidebar-background: 270 12% 15%; /* Dark violet-grey for sidebar */
+    --sidebar-foreground: 270 10% 88%; /* Light grayish violet */
+    --sidebar-primary: 270 55% 60%; /* Darker Medium Violet */
+    --sidebar-primary-foreground: 270 10% 95%; /* Light Grey */
+    --sidebar-accent: 270 55% 55%; /* Slightly more desaturated/darker violet for accent */
+    --sidebar-accent-foreground: 270 10% 95%; /* Light Grey */
+    --sidebar-border: 270 10% 23%; /* Dark violet-tinted border */
+    --sidebar-ring: 270 55% 60%; /* Darker Medium Violet */
   }
 }
 
