@@ -5,6 +5,7 @@ import { GeistMono } from 'geist/font/mono';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
+import { ThemeProvider } from '@/components/theme-provider'; // Import ThemeProvider
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -31,8 +32,15 @@ export default function RootLayout({
           fontSans.variable // Keep Inter as a fallback if Geist fails or for specific needs
         )}
       >
-        {children}
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

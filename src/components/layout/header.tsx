@@ -1,5 +1,6 @@
 import { GraduationCap } from 'lucide-react';
 import Link from 'next/link';
+import { ThemeToggleButton } from '@/components/theme-toggle-button';
 
 export function AppHeader() {
   return (
@@ -9,7 +10,7 @@ export function AppHeader() {
           <GraduationCap className="h-7 w-7 text-primary" />
           <h1 className="text-xl font-semibold text-foreground">Guru</h1>
         </Link>
-        {/* Future navigation items can go here */}
+        <ThemeToggleButton />
       </div>
     </header>
   );
