@@ -8,7 +8,18 @@ export default {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    container: { // Added container component configuration
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
   	extend: {
+      fontFamily: { // Added font family for Geist Sans
+        sans: ["var(--font-geist-sans)", "var(--font-sans)"], // Geist as primary, Inter as fallback
+        mono: ["var(--font-geist-mono)"],
+      },
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
@@ -41,7 +52,7 @@ export default {
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
   			border: 'hsl(var(--border))',
-  			input: 'hsl(var(--input))',
+  			input: 'hsl(var(--input))', // This is typically input border color in shadcn
   			ring: 'hsl(var(--ring))',
   			chart: {
   				'1': 'hsl(var(--chart-1))',
