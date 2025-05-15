@@ -12,8 +12,8 @@ const fontSans = FontSans({
 });
 
 export const metadata: Metadata = {
-  title: 'GradeEase - GPA Calculator',
-  description: 'Easily calculate and track your SGPA and CGPA with GradeEase.',
+  title: 'Guru - GPA Calculator',
+  description: 'Easily calculate and track your SGPA and CGPA with Guru.',
 };
 
 export default function RootLayout({

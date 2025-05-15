@@ -24,8 +24,8 @@ export default function HomePage() {
   // Load data from localStorage on initial mount
   useEffect(() => {
     try {
-      const storedSemesters = localStorage.getItem("gradeEaseSemesters");
-      const storedSelectedSemester = localStorage.getItem("gradeEaseSelectedSemester");
+      const storedSemesters = localStorage.getItem("guruSemesters");
+      const storedSelectedSemester = localStorage.getItem("guruSelectedSemester");
       if (storedSemesters) {
         setSemestersData(JSON.parse(storedSemesters));
       }
@@ -43,11 +43,11 @@ export default function HomePage() {
   useEffect(() => {
     if (!isLoading) { // Only save after initial load
         try {
-            localStorage.setItem("gradeEaseSemesters", JSON.stringify(semestersData));
+            localStorage.setItem("guruSemesters", JSON.stringify(semestersData));
             if (selectedSemesterKey) {
-                localStorage.setItem("gradeEaseSelectedSemester", JSON.stringify(selectedSemesterKey));
+                localStorage.setItem("guruSelectedSemester", JSON.stringify(selectedSemesterKey));
             } else {
-                localStorage.removeItem("gradeEaseSelectedSemester");
+                localStorage.removeItem("guruSelectedSemester");
             }
         } catch (error) {
             console.error("Failed to save data to localStorage", error);
@@ -135,7 +135,7 @@ export default function HomePage() {
       return (
         <div className="flex flex-col min-h-screen items-center justify-center">
             <BookOpenCheck className="h-16 w-16 text-primary animate-pulse" />
-            <p className="text-muted-foreground mt-4">Loading GradeEase...</p>
+            <p className="text-muted-foreground mt-4">Loading Guru...</p>
         </div>
       );
   }
@@ -193,7 +193,7 @@ export default function HomePage() {
 
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground border-t">
-        © {new Date().getFullYear()} GradeEase. All rights reserved.
+        © {new Date().getFullYear()} Guru. All rights reserved.
       </footer>
     </div>
   );
