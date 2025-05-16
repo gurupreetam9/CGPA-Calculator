@@ -149,12 +149,6 @@ export default function HomePage() {
           onSelectSemester={handleSelectSemester}
         />
 
-        <GpaDisplay
-          currentSgpa={currentSgpa}
-          overallCgpa={overallCgpa}
-          selectedSemesterKey={selectedSemesterKey}
-        />
-
         {selectedSemesterKey && currentSemesterDetails && !currentSemesterDetails.isManual && (
           <Card className="shadow-lg">
             <CardHeader>
@@ -182,6 +176,12 @@ export default function HomePage() {
                 </AlertDescription>
             </Alert>
         )}
+
+        <GpaDisplay
+          currentSgpa={currentSgpa}
+          overallCgpa={overallCgpa}
+          selectedSemesterKey={selectedSemesterKey}
+        />
         
         <div className="grid md:grid-cols-2 gap-6">
             <CgpaHistoryTable semestersData={semestersData} />
