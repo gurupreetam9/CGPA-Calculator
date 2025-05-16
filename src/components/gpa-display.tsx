@@ -85,18 +85,18 @@ export function GpaDisplay({ currentSgpa, overallCgpa, selectedSemesterKey, isLo
                 {selectedSemesterKey ? `Current SGPA` : "SGPA"}
               </p>
               {isLoading && !currentSgpa ? (
-                <Skeleton className="h-10 w-24 mt-1 mx-auto" />
+                <Skeleton className="h-8 sm:h-10 w-20 sm:w-24 mt-1 mx-auto" />
               ) : (
-                <p className="text-3xl font-extrabold text-primary">{sgpaText}</p>
+                <p className="text-2xl sm:text-3xl font-extrabold text-primary">{sgpaText}</p>
               )}
             </div>
             
             <div className="text-center">
               <p className="text-sm font-medium text-muted-foreground">SGPA Percentage</p>
                {isLoading && !currentSgpaPercentage ? (
-                <Skeleton className="h-10 w-24 mt-1 mx-auto" />
+                <Skeleton className="h-8 sm:h-10 w-20 sm:w-24 mt-1 mx-auto" />
               ) : (
-                <p className="text-3xl font-extrabold text-primary">{sgpaPercentageText}</p>
+                <p className="text-2xl sm:text-3xl font-extrabold text-primary">{sgpaPercentageText}</p>
               )}
             </div>
           </div>
@@ -105,17 +105,17 @@ export function GpaDisplay({ currentSgpa, overallCgpa, selectedSemesterKey, isLo
             <div className="text-center">
                 <p className="text-sm font-medium text-muted-foreground">Overall CGPA</p>
                 {isLoading && !overallCgpa ? (
-                  <Skeleton className="h-10 w-24 mt-1 mx-auto" />
+                  <Skeleton className="h-8 sm:h-10 w-20 sm:w-24 mt-1 mx-auto" />
                 ) : (
-                <p className="text-3xl font-extrabold text-accent-foreground">{cgpaText}</p>
+                <p className="text-2xl sm:text-3xl font-extrabold text-accent-foreground">{cgpaText}</p>
                 )}
             </div>
             <div className="text-center">
                 <p className="text-sm font-medium text-muted-foreground">CGPA Percentage</p>
                 {isLoading && !currentCgpaPercentage ? (
-                  <Skeleton className="h-10 w-24 mt-1 mx-auto" />
+                  <Skeleton className="h-8 sm:h-10 w-20 sm:w-24 mt-1 mx-auto" />
                 ) : (
-                <p className="text-3xl font-extrabold text-accent-foreground">{cgpaPercentageText}</p>
+                <p className="text-2xl sm:text-3xl font-extrabold text-accent-foreground">{cgpaPercentageText}</p>
                 )}
             </div>
           </div>
@@ -127,8 +127,8 @@ export function GpaDisplay({ currentSgpa, overallCgpa, selectedSemesterKey, isLo
             </p>
         )}
 
-        <div className={`flex items-center justify-center gap-2 p-3 rounded-md border bg-card shadow-sm ${currentSgpaPercentage === null || currentSgpaPercentage === 0 ? 'border-muted' : 'border-transparent'}`}>
-          <MotivationalIcon className={`h-5 w-5 ${motivationalColorClass}`} />
+        <div className={`flex items-center justify-center text-center gap-2 p-3 rounded-md border bg-card shadow-sm ${currentSgpaPercentage === null || currentSgpaPercentage === 0 ? 'border-muted' : 'border-transparent'}`}>
+          <MotivationalIcon className={`h-5 w-5 shrink-0 ${motivationalColorClass}`} />
           <p className={`text-sm font-medium ${motivationalColorClass}`}>{motivationalMessage}</p>
         </div>
 
@@ -138,7 +138,7 @@ export function GpaDisplay({ currentSgpa, overallCgpa, selectedSemesterKey, isLo
               <PieChartIcon className="h-5 w-5 text-primary" />
               Overall CGPA Breakdown
             </h3>
-            <ChartContainer config={chartConfig} className="mx-auto aspect-square h-[200px] w-full max-w-[200px]">
+            <ChartContainer config={chartConfig} className="mx-auto aspect-square h-[180px] sm:h-[200px] w-full max-w-[180px] sm:max-w-[200px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Tooltip
@@ -160,8 +160,8 @@ export function GpaDisplay({ currentSgpa, overallCgpa, selectedSemesterKey, isLo
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius={80}
-                    innerRadius={50}
+                    outerRadius={70}
+                    innerRadius={40}
                     strokeWidth={2}
                     paddingAngle={2}
                   >
@@ -180,12 +180,10 @@ export function GpaDisplay({ currentSgpa, overallCgpa, selectedSemesterKey, isLo
          {isLoading && overallCgpa === null && (
           <div className="mt-6 border-t pt-6 text-center">
             <Skeleton className="h-6 w-1/2 mx-auto mb-2" /> {/* Placeholder for title */}
-            <Skeleton className="mx-auto h-[200px] w-[200px] rounded-full" /> {/* Placeholder for chart */}
+            <Skeleton className="mx-auto h-[180px] w-[180px] sm:h-[200px] sm:w-[200px] rounded-full" /> {/* Placeholder for chart */}
             <Skeleton className="h-4 w-3/4 mx-auto mt-2" /> {/* Placeholder for description */}
           </div>
         )}
-
-
       </CardContent>
     </Card>
   );

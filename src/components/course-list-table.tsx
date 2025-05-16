@@ -53,25 +53,25 @@ export function CourseListTable({ courses, onDeleteCourse, onUpdateCourseGrade }
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[40%]">Course Name</TableHead>
-            <TableHead className="text-center w-[20%]">Credits</TableHead>
-            <TableHead className="text-center w-[20%]">Grade</TableHead>
-            <TableHead className="text-right w-[20%]">Actions</TableHead>
+            <TableHead className="min-w-[150px] w-auto sm:w-2/5">Course Name</TableHead>
+            <TableHead className="text-center w-[80px] sm:w-1/5">Credits</TableHead>
+            <TableHead className="text-center w-[110px] sm:w-1/5">Grade</TableHead>
+            <TableHead className="text-right w-[70px] sm:w-1/5">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {courses.map((course) => (
             <TableRow key={course.id}>
-              <TableCell className="font-medium">{course.name}</TableCell>
-              <TableCell className="text-center">
+              <TableCell className="font-medium py-3 pr-2">{course.name}</TableCell>
+              <TableCell className="text-center py-3 px-2">
                 <Badge variant="secondary">{course.credits.toFixed(1)}</Badge>
               </TableCell>
-              <TableCell className="text-center">
+              <TableCell className="text-center py-3 px-1">
                 <Select
                   value={gradePointToLetterGrade(course.gradePoint)}
                   onValueChange={(newLetterGrade) => handleGradeChange(course.id, newLetterGrade)}
                 >
-                  <SelectTrigger className="w-24 mx-auto h-9 text-sm">
+                  <SelectTrigger className="w-full max-w-[6.5rem] h-9 text-sm mx-auto">
                     <SelectValue placeholder="Select Grade" />
                   </SelectTrigger>
                   <SelectContent>
@@ -81,13 +81,13 @@ export function CourseListTable({ courses, onDeleteCourse, onUpdateCourseGrade }
                   </SelectContent>
                 </Select>
               </TableCell>
-              <TableCell className="text-right">
+              <TableCell className="text-right py-3 pl-2">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => onDeleteCourse(course.id)}
                   aria-label={`Delete course ${course.name}`}
-                  className="text-destructive hover:bg-destructive/10"
+                  className="text-destructive hover:bg-destructive/10 h-8 w-8 sm:h-9 sm:w-9"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
