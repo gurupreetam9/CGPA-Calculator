@@ -67,17 +67,30 @@ export function calculateSGPA(courses: Course[]): number | null {
 /**
  * Calculates CGPA based on a record of all semester details.
  * CGPA = Sum(semester.sgpa * semester.totalCredits) / Sum(semester.totalCredits)
+ * For course-based semesters (isManual=false), only includes them if SGPA > 0.
+ * For manually entered semesters (isManual=true), includes them even if SGPA is 0.
  * @param semestersData Record of SemesterDetails objects.
- * @returns Calculated CGPA, or null if no valid semester data.
+ * @returns Calculated CGPA, or null if no valid semester data meeting criteria.
  */
 export function calculateCGPA(semestersData: Record<string, SemesterDetails>): number | null {
   let cumulativeGradePoints = 0;
   let cumulativeCredits = 0;
 
   Object.values(semestersData).forEach(semester => {
-    if (semester.sgpa !== null && semester.totalCredits > 0) {
-      cumulativeGradePoints += semester.sgpa * semester.totalCredits;
-      cumulativeCredits += semester.totalCredits;
+    // Basic check: must have credits and a calculated/entered SGPA
+    if (semester.totalCredits > 0 && semester.sgpa !== null) {
+      if (semester.isManual) {
+        // For manually entered SGPA, include even if SGPA is 0 (user explicitly set it)
+        cumulativeGradePoints += semester.sgpa * semester.totalCredits;
+        cumulativeCredits += semester.totalCredits;
+      } else {
+        // For course-based SGPA, only include if SGPA > 0
+        // This prevents "empty" or "all F" auto-initialized semesters from dragging down CGPA
+        if (semester.sgpa > 0) {
+          cumulativeGradePoints += semester.sgpa * semester.totalCredits;
+          cumulativeCredits += semester.totalCredits;
+        }
+      }
     }
   });
 
