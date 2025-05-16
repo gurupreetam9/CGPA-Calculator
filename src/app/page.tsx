@@ -73,15 +73,16 @@ export default function HomePage() {
   const handleSelectSemester = (semesterKey: string, year: number, semesterInYear: number) => {
     setSelectedSemesterKey(semesterKey);
     const semesterExists = !!semestersData[semesterKey];
-    const semesterHasCourses = semesterExists && semestersData[semesterKey].courses.length > 0;
-    const semesterIsManual = semesterExists && semestersData[semesterKey].isManual;
+    // Check if it's manual or has courses already.
+    const shouldInitializeCourses = !semesterExists || 
+                                   (!semestersData[semesterKey].isManual && semestersData[semesterKey].courses.length === 0);
 
-    if (!semesterExists || (!semesterHasCourses && !semesterIsManual)) {
+
+    if (shouldInitializeCourses) {
       const newCoursesWithDefaults: Course[] = defaultCoursesList.map((course, index) => ({
         ...course,
-        // Create a more robust unique ID
         id: `${semesterKey}-${course.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}-${Date.now().toString(36)}${Math.random().toString(36).substring(2, 7)}`,
-        gradePoint: 0, // User will enter this
+        gradePoint: 0, 
       }));
       const newTotalCredits = newCoursesWithDefaults.reduce((sum, c) => sum + c.credits, 0);
       const newSgpa = calculateSGPA(newCoursesWithDefaults);
@@ -89,13 +90,14 @@ export default function HomePage() {
       setSemestersData(prev => ({
         ...prev,
         [semesterKey]: {
+          ...(prev[semesterKey] || {}), // Preserve existing data if any, like year/semesterInYear if already set
           id: semesterKey,
           year,
           semesterInYear,
           courses: newCoursesWithDefaults,
           sgpa: newSgpa,
           totalCredits: newTotalCredits,
-          isManual: false,
+          isManual: false, // Ensure isManual is false when courses are added
         },
       }));
     }
@@ -140,9 +142,6 @@ export default function HomePage() {
             description: "Grade point must be a number between 0 and 10.",
             variant: "destructive",
         });
-        // Optionally, revert the input to the old value if you store it temporarily,
-        // or re-fetch/re-render to show the current valid state.
-        // For simplicity, we'll just show a toast and the invalid value might remain until next valid update.
         return;
     }
 
@@ -157,13 +156,11 @@ export default function HomePage() {
       const updatedSemester = {
         ...currentSemester,
         courses: updatedCourses,
-        sgpa: calculateSGPA(updatedCourses), // Recalculate SGPA
+        sgpa: calculateSGPA(updatedCourses), 
       };
       
       return { ...prev, [selectedSemesterKey]: updatedSemester };
     });
-    // Optional: toast for successful update
-    // toast({ title: "Grade Updated", description: "Course grade point has been updated."});
   };
 
 
@@ -175,7 +172,7 @@ export default function HomePage() {
         id: semesterKey,
         year,
         semesterInYear,
-        courses: [], // Manual entry means no individual courses tracked here
+        courses: [], 
         sgpa,
         totalCredits,
         isManual: true,
@@ -216,6 +213,14 @@ export default function HomePage() {
 
         <div className="grid md:grid-cols-3 gap-8 items-start">
           <div className="md:col-span-2 space-y-6">
+            <GpaDisplay
+            currentSgpa={currentSgpa}
+            overallCgpa={overallCgpa}
+            selectedSemesterKey={selectedSemesterKey}
+            isLoading={isLoading && !selectedSemesterKey} 
+            />
+          </div>
+          <div className="md:col-span-1 space-y-6">
             {selectedSemesterKey && currentSemesterDetails && !currentSemesterDetails.isManual && (
               <Card className="shadow-xl">
                 <CardHeader>
@@ -269,15 +274,6 @@ export default function HomePage() {
                     </CardContent>
                  </Card>
             )}
-          </div>
-          
-          <div className="md:col-span-1 space-y-6">
-            <GpaDisplay
-            currentSgpa={currentSgpa}
-            overallCgpa={overallCgpa}
-            selectedSemesterKey={selectedSemesterKey}
-            isLoading={isLoading && !selectedSemesterKey} // Show skeleton if loading and no semester selected yet
-            />
           </div>
         </div>
         
