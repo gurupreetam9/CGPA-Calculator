@@ -58,11 +58,10 @@ export function CourseListTable({ courses, onDeleteCourse, onUpdateCourseGrade }
       <Table>
         <TableHeader>
           <TableRow>
-            {/* Removed min-w-[150px] and adjusted w-auto for better flex on small screens */}
             <TableHead className="w-auto sm:w-2/5">Course Name</TableHead>
-            <TableHead className="text-center w-[80px] sm:w-1/5">Credits</TableHead>
-            <TableHead className="text-center w-[110px] sm:w-1/5">Grade</TableHead>
-            <TableHead className="text-right w-[70px] sm:w-1/5">Actions</TableHead>
+            <TableHead className="text-center w-[65px] sm:w-1/5">Credits</TableHead>
+            <TableHead className="text-center w-[100px] sm:w-1/5">Grade</TableHead>
+            <TableHead className="text-right w-[55px] sm:w-1/5">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -72,7 +71,7 @@ export function CourseListTable({ courses, onDeleteCourse, onUpdateCourseGrade }
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="block truncate max-w-[12ch] xs:max-w-[15ch] sm:max-w-none"> {/* Truncate with char limit on small, no limit on sm+ */}
+                      <span className="block truncate max-w-[12ch] xs:max-w-[15ch] sm:max-w-none">
                         {course.name}
                       </span>
                     </TooltipTrigger>
