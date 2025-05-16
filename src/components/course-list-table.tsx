@@ -19,6 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { Course } from "@/types";
 import { letterGrades, letterGradeToGradePoint, gradePointToLetterGrade } from "@/lib/gpa-calculator";
 
@@ -32,7 +38,6 @@ export function CourseListTable({ courses, onDeleteCourse, onUpdateCourseGrade }
 
   const handleGradeChange = (courseId: string, newLetterGrade: string) => {
     const newGradePoint = letterGradeToGradePoint(newLetterGrade);
-    // Find the original course to check if the value actually changed from the stored one
     const originalCourse = courses.find(c => c.id === courseId);
     if (originalCourse && originalCourse.gradePoint !== newGradePoint) {
         onUpdateCourseGrade(courseId, newGradePoint);
@@ -53,7 +58,8 @@ export function CourseListTable({ courses, onDeleteCourse, onUpdateCourseGrade }
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="min-w-[150px] w-auto sm:w-2/5">Course Name</TableHead>
+            {/* Removed min-w-[150px] and adjusted w-auto for better flex on small screens */}
+            <TableHead className="w-auto sm:w-2/5">Course Name</TableHead>
             <TableHead className="text-center w-[80px] sm:w-1/5">Credits</TableHead>
             <TableHead className="text-center w-[110px] sm:w-1/5">Grade</TableHead>
             <TableHead className="text-right w-[70px] sm:w-1/5">Actions</TableHead>
@@ -62,7 +68,20 @@ export function CourseListTable({ courses, onDeleteCourse, onUpdateCourseGrade }
         <TableBody>
           {courses.map((course) => (
             <TableRow key={course.id}>
-              <TableCell className="font-medium py-3 pr-2">{course.name}</TableCell>
+              <TableCell className="font-medium py-3 pr-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="block truncate max-w-[12ch] xs:max-w-[15ch] sm:max-w-none"> {/* Truncate with char limit on small, no limit on sm+ */}
+                        {course.name}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{course.name}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </TableCell>
               <TableCell className="text-center py-3 px-2">
                 <Badge variant="secondary">{course.credits.toFixed(1)}</Badge>
               </TableCell>
