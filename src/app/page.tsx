@@ -72,7 +72,11 @@ export default function HomePage() {
 
   const handleSelectSemester = (semesterKey: string, year: number, semesterInYear: number) => {
     setSelectedSemesterKey(semesterKey);
-    if (!semestersData[semesterKey]) {
+    const semesterExists = !!semestersData[semesterKey];
+    const semesterHasCourses = semesterExists && semestersData[semesterKey].courses.length > 0;
+    const semesterIsManual = semesterExists && semestersData[semesterKey].isManual;
+
+    if (!semesterExists || (!semesterHasCourses && !semesterIsManual)) {
       const newCoursesWithDefaults: Course[] = defaultCoursesList.map((course, index) => ({
         ...course,
         // Create a more robust unique ID
