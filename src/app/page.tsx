@@ -9,7 +9,7 @@ import { CourseInputForm } from "@/components/course-input-form";
 import { CourseListTable } from "@/components/course-list-table";
 import { GpaDisplay } from "@/components/gpa-display";
 import { CgpaHistoryTable } from "@/components/cgpa-history-table";
-import { ManualSgpaForm } from "@/components/manual-sgpa-form";
+// import { ManualSgpaForm } from "@/components/manual-sgpa-form"; // Removed import
 import { calculateSGPA, calculateCGPA, formatSemesterKey } from "@/lib/gpa-calculator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -190,7 +190,7 @@ export default function HomePage() {
       updatedSemester.courses = [...updatedSemester.courses, newCourse];
       updatedSemester.totalCredits = updatedSemester.courses.reduce((sum, c) => sum + c.credits, 0);
       updatedSemester.sgpa = calculateSGPA(updatedSemester.courses);
-      updatedSemester.isManual = false;
+      updatedSemester.isManual = false; // Ensure new courses make semester not manual
       return { ...prev, [selectedSemesterKey]: updatedSemester };
     });
   };
@@ -239,22 +239,21 @@ export default function HomePage() {
     });
   };
 
-
-  const handleAddManualSgpa = (year: number, semesterInYear: number, sgpa: number, totalCredits: number) => {
-    const semesterKey = `Y${year}S${semesterInYear}`;
-    setSemestersData(prev => ({
-      ...prev,
-      [semesterKey]: {
-        id: semesterKey,
-        year,
-        semesterInYear,
-        courses: [],
-        sgpa,
-        totalCredits,
-        isManual: true,
-      },
-    }));
-  };
+  // const handleAddManualSgpa = (year: number, semesterInYear: number, sgpa: number, totalCredits: number) => { // Removed function
+  //   const semesterKey = `Y${year}S${semesterInYear}`;
+  //   setSemestersData(prev => ({
+  //     ...prev,
+  //     [semesterKey]: {
+  //       id: semesterKey,
+  //       year,
+  //       semesterInYear,
+  //       courses: [],
+  //       sgpa,
+  //       totalCredits,
+  //       isManual: true,
+  //     },
+  //   }));
+  // };
 
   const currentSemesterDetails = selectedSemesterKey ? semestersData[selectedSemesterKey] : null;
 
@@ -354,13 +353,8 @@ export default function HomePage() {
         </div>
 
         <section aria-labelledby="additional-tools-title" className="pt-4">
-            <div className="grid md:grid-cols-2 gap-8">
-                <CgpaHistoryTable semestersData={semestersData} />
-                <ManualSgpaForm
-                    onAddManualSgpa={handleAddManualSgpa}
-                    existingSemesterKeys={Object.keys(semestersData).filter(key => semestersData[key].isManual || (semestersData[key].courses && semestersData[key].courses.length > 0))}
-                />
-            </div>
+             <CgpaHistoryTable semestersData={semestersData} />
+             {/* ManualSgpaForm was here */}
         </section>
 
       </main>
