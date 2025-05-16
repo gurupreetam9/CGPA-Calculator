@@ -76,7 +76,7 @@ export default function HomePage() {
     // Check if it's manual or has courses already.
     // Initialize if it doesn't exist OR if it's not manual AND it's currently empty (or was empty before default courses were added)
     const shouldInitializeCourses = !semesterExists ||
-                                   (!semestersData[semesterKey].isManual && semestersData[semesterKey].courses.length === 0);
+                                   (!semestersData[semesterKey].isManual && (!semestersData[semesterKey].courses || semestersData[semesterKey].courses.length === 0));
 
 
     if (shouldInitializeCourses) {
@@ -221,18 +221,18 @@ export default function HomePage() {
                     <BookMarked className="h-8 w-8 text-primary" />
                     <div>
                         <CardTitle id="course-management-title" className="text-2xl font-semibold">Courses for {formatSemesterKey(selectedSemesterKey)}</CardTitle>
-                        <CardDescription>Add or manage courses for the selected semester. Enter grade points for default courses or add new ones.</CardDescription>
+                        <CardDescription>Manage courses and enter grade points for the selected semester. Add new courses below if needed.</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <CourseInputForm onAddCourse={handleAddCourse} />
-                  <Separator />
                   <CourseListTable
                     courses={currentSemesterDetails.courses || []}
                     onDeleteCourse={handleDeleteCourse}
                     onUpdateCourseGrade={handleUpdateCourseGrade}
                   />
+                  <Separator />
+                  <CourseInputForm onAddCourse={handleAddCourse} />
                 </CardContent>
               </Card>
             )}
