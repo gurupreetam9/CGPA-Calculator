@@ -140,7 +140,6 @@ export default function HomePage() {
   }, [semestersData, selectedSemesterKey, isLoading]);
 
 
-<<<<<<< HEAD
  const handleSelectSemester = (semesterKey: string, year: number, semesterInYear: number) => {
   setSelectedSemesterKey(semesterKey);
   const defaultCoursesList = defaultCoursesBySemester[semesterKey] || [];
@@ -177,40 +176,6 @@ export default function HomePage() {
 };
 
 
-=======
-  const handleSelectSemester = (semesterKey: string, year: number, semesterInYear: number) => {
-    setSelectedSemesterKey(semesterKey);
-    const semesterExists = !!semestersData[semesterKey];
-    
-    const shouldInitializeCourses = !semesterExists ||
-                                   (semestersData[semesterKey] && !semestersData[semesterKey].isManual && (!semestersData[semesterKey].courses || semestersData[semesterKey].courses.length === 0));
-
-
-    if (shouldInitializeCourses) {
-      const newCoursesWithDefaults: Course[] = defaultCoursesList.map((course, index) => ({
-        ...course,
-        id: `${semesterKey}-${course.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}-${Date.now().toString(36)}${Math.random().toString(36).substring(2, 7)}`,
-        gradePoint: 0, // Default to 0 (F grade)
-      }));
-      const newTotalCredits = newCoursesWithDefaults.reduce((sum, c) => sum + c.credits, 0);
-      const newSgpa = calculateSGPA(newCoursesWithDefaults);
-
-      setSemestersData(prev => ({
-        ...prev,
-        [semesterKey]: {
-          ...(prev[semesterKey] || {}), 
-          id: semesterKey,
-          year,
-          semesterInYear,
-          courses: newCoursesWithDefaults,
-          sgpa: newSgpa,
-          totalCredits: newTotalCredits,
-          isManual: false, 
-        },
-      }));
-    }
-  };
->>>>>>> cc0f0cd0364566cc6b7a304af823bf97f77f4a8b
 
   const handleAddCourse = (newCourseData: Omit<Course, 'id'>) => {
     if (!selectedSemesterKey) return;
