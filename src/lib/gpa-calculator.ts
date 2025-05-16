@@ -1,4 +1,42 @@
+
 import type { Course, SemesterDetails } from '@/types';
+
+export const gradeMap: Record<string, number> = {
+  "A+": 10,
+  "A": 9,
+  "B": 8,
+  "C": 7,
+  "D": 6,
+  "E": 5,
+  "F": 0,
+};
+
+export const letterGrades: string[] = Object.keys(gradeMap);
+
+export function letterGradeToGradePoint(letterGrade: string): number {
+  return gradeMap[letterGrade] ?? 0; // Default to 0 (F) if somehow an invalid grade is passed
+}
+
+export function gradePointToLetterGrade(gradePoint: number): string {
+  // Find the closest letter grade for a given point.
+  // This handles potential floating points if calculations were ever imprecise, though they shouldn't be.
+  for (const grade in gradeMap) {
+    if (gradeMap[grade] === gradePoint) {
+      return grade;
+    }
+  }
+  // Fallback for unexpected grade points, prefer "F" or the closest lower.
+  // For simplicity, if direct match fails, default to "F".
+  // A more robust solution might find the nearest valid grade.
+  if (gradePoint >= 10) return "A+";
+  if (gradePoint >= 9) return "A";
+  if (gradePoint >= 8) return "B";
+  if (gradePoint >= 7) return "C";
+  if (gradePoint >= 6) return "D";
+  if (gradePoint >= 5) return "E";
+  return "F";
+}
+
 
 /**
  * Calculates SGPA for a given list of courses.

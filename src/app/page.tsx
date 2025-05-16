@@ -140,6 +140,7 @@ export default function HomePage() {
   }, [semestersData, selectedSemesterKey, isLoading]);
 
 
+<<<<<<< HEAD
  const handleSelectSemester = (semesterKey: string, year: number, semesterInYear: number) => {
   setSelectedSemesterKey(semesterKey);
   const defaultCoursesList = defaultCoursesBySemester[semesterKey] || [];
@@ -176,12 +177,46 @@ export default function HomePage() {
 };
 
 
+=======
+  const handleSelectSemester = (semesterKey: string, year: number, semesterInYear: number) => {
+    setSelectedSemesterKey(semesterKey);
+    const semesterExists = !!semestersData[semesterKey];
+    
+    const shouldInitializeCourses = !semesterExists ||
+                                   (semestersData[semesterKey] && !semestersData[semesterKey].isManual && (!semestersData[semesterKey].courses || semestersData[semesterKey].courses.length === 0));
+
+
+    if (shouldInitializeCourses) {
+      const newCoursesWithDefaults: Course[] = defaultCoursesList.map((course, index) => ({
+        ...course,
+        id: `${semesterKey}-${course.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}-${Date.now().toString(36)}${Math.random().toString(36).substring(2, 7)}`,
+        gradePoint: 0, // Default to 0 (F grade)
+      }));
+      const newTotalCredits = newCoursesWithDefaults.reduce((sum, c) => sum + c.credits, 0);
+      const newSgpa = calculateSGPA(newCoursesWithDefaults);
+
+      setSemestersData(prev => ({
+        ...prev,
+        [semesterKey]: {
+          ...(prev[semesterKey] || {}), 
+          id: semesterKey,
+          year,
+          semesterInYear,
+          courses: newCoursesWithDefaults,
+          sgpa: newSgpa,
+          totalCredits: newTotalCredits,
+          isManual: false, 
+        },
+      }));
+    }
+  };
+>>>>>>> cc0f0cd0364566cc6b7a304af823bf97f77f4a8b
 
   const handleAddCourse = (newCourseData: Omit<Course, 'id'>) => {
     if (!selectedSemesterKey) return;
 
     const newCourse: Course = {
-        ...newCourseData,
+        ...newCourseData, // This now includes gradePoint converted from letterGrade
         id: `${selectedSemesterKey}-${newCourseData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now().toString(36)}${Math.random().toString(36).substring(2, 7)}`
     };
 
@@ -208,12 +243,14 @@ export default function HomePage() {
     toast({ title: "Course Deleted", description: "The course has been removed."});
   };
 
-  const handleUpdateCourseGrade = (courseId: string, newGradePoint: number) => {
+  const handleUpdateCourseGrade = (courseId: string, newGradePoint: number) => { // Receives numeric gradePoint
     if (!selectedSemesterKey) return;
+    // Basic validation still good, though selection limits direct user error
     if (isNaN(newGradePoint) || newGradePoint < 0 || newGradePoint > 10) {
+        // This case should be rare now due to Select component
         toast({
-            title: "Invalid Grade Point",
-            description: "Grade point must be a number between 0 and 10.",
+            title: "Invalid Grade Data",
+            description: "An issue occurred while updating the grade.",
             variant: "destructive",
         });
         return;
@@ -294,7 +331,7 @@ export default function HomePage() {
                     <BookMarked className="h-8 w-8 text-primary" />
                     <div>
                         <CardTitle id="course-management-title" className="text-2xl font-semibold">Courses for {formatSemesterKey(selectedSemesterKey)}</CardTitle>
-                        <CardDescription>Manage courses and enter grade points for the selected semester. Add new courses below if needed.</CardDescription>
+                        <CardDescription>Manage courses for the selected semester. Update grades in the table or add new courses below.</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -368,4 +405,3 @@ export default function HomePage() {
     </div>
   );
 }
-

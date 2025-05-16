@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,8 +16,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { Course } from "@/types";
 import { toast } from "@/hooks/use-toast";
+import { letterGrades, letterGradeToGradePoint } from "@/lib/gpa-calculator";
 
 const courseFormSchema = z.object({
   name: z.string().min(2, {
@@ -27,10 +36,8 @@ const courseFormSchema = z.object({
   }).max(10, {
     message: "Credits cannot exceed 10.",
   }),
-  gradePoint: z.coerce.number().min(0, {
-    message: "Grade point must be at least 0.",
-  }).max(10, { // Assuming a 0-10 scale. Adjust if needed.
-    message: "Grade point cannot exceed 10.",
+  letterGrade: z.string().refine(val => letterGrades.includes(val), {
+    message: "Please select a valid grade.",
   }),
 });
 
@@ -45,13 +52,14 @@ export function CourseInputForm({ onAddCourse }: CourseInputFormProps) {
     resolver: zodResolver(courseFormSchema),
     defaultValues: {
       name: "",
-      credits: undefined, // Use undefined for number inputs to show placeholder
-      gradePoint: undefined,
+      credits: undefined,
+      letterGrade: "F", // Default to F
     },
   });
 
   function onSubmit(data: CourseFormValues) {
-    onAddCourse(data);
+    const gradePoint = letterGradeToGradePoint(data.letterGrade);
+    onAddCourse({ name: data.name, credits: data.credits, gradePoint });
     form.reset();
     toast({
       title: "Course Added",
@@ -91,13 +99,22 @@ export function CourseInputForm({ onAddCourse }: CourseInputFormProps) {
           />
           <FormField
             control={form.control}
-            name="gradePoint"
+            name="letterGrade"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Grade Point (0-10)</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="e.g., 8.5" {...field} step="0.1" />
-                </FormControl>
+                <FormLabel>Grade</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select grade" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {letterGrades.map(grade => (
+                      <SelectItem key={grade} value={grade}>{grade}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
