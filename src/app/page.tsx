@@ -13,9 +13,21 @@ import { ManualSgpaForm } from "@/components/manual-sgpa-form";
 import { calculateSGPA, calculateCGPA, formatSemesterKey } from "@/lib/gpa-calculator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { AlertCircle, BookOpenCheck } from "lucide-react";
+import { AlertCircle, BookOpenCheck, BookMarked } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
+
+const defaultCoursesList: Omit<Course, 'id' | 'gradePoint'>[] = [
+  { name: "Communicative English", credits: 3 },
+  { name: "Mathematics – I", credits: 3 },
+  { name: "Applied Chemistry", credits: 3 },
+  { name: "Programming for Problem Solving using C", credits: 3 },
+  { name: "Computer Engineering Workshop", credits: 3 },
+  { name: "English Communication Skills Laboratory", credits: 1.5 },
+  { name: "Applied Chemistry Lab", credits: 1.5 },
+  { name: "Programming for Problem Solving using C Lab", credits: 1.5 },
+  { name: "Environmental Science*", credits: 0 },
+];
 
 export default function HomePage() {
   const [semestersData, setSemestersData] = useState<Record<string, SemesterDetails>>({});
@@ -61,15 +73,24 @@ export default function HomePage() {
   const handleSelectSemester = (semesterKey: string, year: number, semesterInYear: number) => {
     setSelectedSemesterKey(semesterKey);
     if (!semestersData[semesterKey]) {
+      const newCoursesWithDefaults: Course[] = defaultCoursesList.map((course, index) => ({
+        ...course,
+        // Create a more robust unique ID
+        id: `${semesterKey}-${course.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}-${Date.now().toString(36)}${Math.random().toString(36).substring(2, 7)}`,
+        gradePoint: 0, // User will enter this
+      }));
+      const newTotalCredits = newCoursesWithDefaults.reduce((sum, c) => sum + c.credits, 0);
+      const newSgpa = calculateSGPA(newCoursesWithDefaults);
+
       setSemestersData(prev => ({
         ...prev,
         [semesterKey]: {
           id: semesterKey,
           year,
           semesterInYear,
-          courses: [],
-          sgpa: null,
-          totalCredits: 0,
+          courses: newCoursesWithDefaults,
+          sgpa: newSgpa,
+          totalCredits: newTotalCredits,
           isManual: false,
         },
       }));
@@ -79,14 +100,17 @@ export default function HomePage() {
   const handleAddCourse = (newCourseData: Omit<Course, 'id'>) => {
     if (!selectedSemesterKey) return;
 
-    const newCourse: Course = { ...newCourseData, id: Date.now().toString() };
+    const newCourse: Course = { 
+        ...newCourseData, 
+        id: `${selectedSemesterKey}-${newCourseData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now().toString(36)}${Math.random().toString(36).substring(2, 7)}`
+    };
     
     setSemestersData(prev => {
       const updatedSemester = { ...prev[selectedSemesterKey] };
       updatedSemester.courses = [...updatedSemester.courses, newCourse];
       updatedSemester.totalCredits = updatedSemester.courses.reduce((sum, c) => sum + c.credits, 0);
       updatedSemester.sgpa = calculateSGPA(updatedSemester.courses);
-      updatedSemester.isManual = false; // Adding courses means it's no longer manual
+      updatedSemester.isManual = false; 
       return { ...prev, [selectedSemesterKey]: updatedSemester };
     });
   };
@@ -103,6 +127,20 @@ export default function HomePage() {
     });
     toast({ title: "Course Deleted", description: "The course has been removed."});
   };
+  
+  // Placeholder for future functionality: Update course grade directly in the table
+  // const handleUpdateCourseGrade = (courseId: string, newGradePoint: number) => {
+  //   if (!selectedSemesterKey) return;
+  //   setSemestersData(prev => {
+  //     const updatedSemester = { ...prev[selectedSemesterKey] };
+  //     updatedSemester.courses = updatedSemester.courses.map(c => 
+  //       c.id === courseId ? { ...c, gradePoint: newGradePoint } : c
+  //     );
+  //     updatedSemester.sgpa = calculateSGPA(updatedSemester.courses);
+  //     return { ...prev, [selectedSemesterKey]: updatedSemester };
+  //   });
+  // };
+
 
   const handleAddManualSgpa = (year: number, semesterInYear: number, sgpa: number, totalCredits: number) => {
     const semesterKey = `Y${year}S${semesterInYear}`;
@@ -112,7 +150,7 @@ export default function HomePage() {
         id: semesterKey,
         year,
         semesterInYear,
-        courses: [],
+        courses: [], // Manual entry means no individual courses tracked here
         sgpa,
         totalCredits,
         isManual: true,
@@ -134,7 +172,7 @@ export default function HomePage() {
   if (isLoading) {
       return (
         <div className="flex flex-col min-h-screen items-center justify-center">
-            <BookOpenCheck className="h-16 w-16 text-primary animate-pulse" />
+            <BookMarked className="h-16 w-16 text-primary animate-pulse" />
             <p className="text-muted-foreground mt-4">Loading Guru...</p>
         </div>
       );
@@ -156,8 +194,13 @@ export default function HomePage() {
             {selectedSemesterKey && currentSemesterDetails && !currentSemesterDetails.isManual && (
               <Card className="shadow-xl">
                 <CardHeader>
-                  <CardTitle className="text-2xl font-semibold">Courses for {formatSemesterKey(selectedSemesterKey)}</CardTitle>
-                  <CardDescription>Add or manage courses for the selected semester.</CardDescription>
+                   <div className="flex items-center gap-3">
+                    <BookMarked className="h-8 w-8 text-primary" />
+                    <div>
+                        <CardTitle id="course-management-title" className="text-2xl font-semibold">Courses for {formatSemesterKey(selectedSemesterKey)}</CardTitle>
+                        <CardDescription>Add or manage courses for the selected semester. Default courses are pre-filled; enter grade points or add more courses.</CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <CourseInputForm onAddCourse={handleAddCourse} />
@@ -165,13 +208,14 @@ export default function HomePage() {
                   <CourseListTable
                     courses={currentSemesterDetails.courses || []}
                     onDeleteCourse={handleDeleteCourse}
+                    // onUpdateCourseGrade={handleUpdateCourseGrade} // Pass this if table becomes editable
                   />
                 </CardContent>
               </Card>
             )}
 
             {selectedSemesterKey && currentSemesterDetails && currentSemesterDetails.isManual && (
-                <Alert variant="default" className="border-accent bg-accent/10 text-accent-foreground">
+                <Alert variant="default" className="border-accent bg-accent/10 text-accent-foreground shadow-lg">
                     <AlertCircle className="h-5 w-5 text-accent" />
                     <AlertTitle className="font-semibold">Manual Entry Active</AlertTitle>
                     <AlertDescription>
@@ -183,12 +227,17 @@ export default function HomePage() {
             {!selectedSemesterKey && (
                  <Card className="shadow-xl">
                     <CardHeader>
-                        <CardTitle className="text-2xl font-semibold">Course Management</CardTitle>
-                        <CardDescription>Select a semester above to manage courses and view SGPA.</CardDescription>
+                        <div className="flex items-center gap-3">
+                            <BookOpenCheck className="h-8 w-8 text-primary" />
+                            <div>
+                                <CardTitle className="text-2xl font-semibold">Course Management</CardTitle>
+                                <CardDescription>Select a semester above to manage courses and view SGPA.</CardDescription>
+                            </div>
+                        </div>
                     </CardHeader>
                     <CardContent>
                         <div className="text-center py-10 text-muted-foreground">
-                            <BookOpenCheck className="mx-auto h-12 w-12 mb-3 text-primary" />
+                            <BookOpenCheck className="mx-auto h-12 w-12 mb-3 text-primary/70" />
                             <p className="text-lg">No semester selected.</p>
                             <p className="text-sm">Your courses and SGPA for the selected semester will appear here.</p>
                         </div>
@@ -202,6 +251,7 @@ export default function HomePage() {
             currentSgpa={currentSgpa}
             overallCgpa={overallCgpa}
             selectedSemesterKey={selectedSemesterKey}
+            isLoading={isLoading && !selectedSemesterKey} // Show skeleton if loading and no semester selected yet
             />
           </div>
         </div>
@@ -223,3 +273,4 @@ export default function HomePage() {
     </div>
   );
 }
+
