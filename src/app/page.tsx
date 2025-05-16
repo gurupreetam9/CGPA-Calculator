@@ -9,7 +9,7 @@ import { CourseInputForm } from "@/components/course-input-form";
 import { CourseListTable } from "@/components/course-list-table";
 import { GpaDisplay } from "@/components/gpa-display";
 import { CgpaHistoryTable } from "@/components/cgpa-history-table";
-import { ManualSgpaForm } from "@/components/manual-sgpa-form";
+// import { ManualSgpaForm } from "@/components/manual-sgpa-form"; // Removed import
 import { calculateSGPA, calculateCGPA, formatSemesterKey } from "@/lib/gpa-calculator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -140,77 +140,40 @@ export default function HomePage() {
   }, [semestersData, selectedSemesterKey, isLoading]);
 
 
-<<<<<<< HEAD
- const handleSelectSemester = (semesterKey: string, year: number, semesterInYear: number) => {
-  setSelectedSemesterKey(semesterKey);
-  const defaultCoursesList = defaultCoursesBySemester[semesterKey] || [];
-  const semesterExists = !!semestersData[semesterKey];
-
-  const shouldInitializeCourses = !semesterExists ||
-    (!semestersData[semesterKey].isManual &&
-      (!semestersData[semesterKey].courses || semestersData[semesterKey].courses.length === 0));
-
-  if (shouldInitializeCourses) {
-    const newCoursesWithDefaults: Course[] = defaultCoursesList.map((course, index) => ({
-      ...course,
-      id: `${semesterKey}-${course.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}-${Date.now().toString(36)}${Math.random().toString(36).substring(2, 7)}`,
-      gradePoint: 0,
-    }));
-
-    const newTotalCredits = newCoursesWithDefaults.reduce((sum, c) => sum + c.credits, 0);
-    const newSgpa = calculateSGPA(newCoursesWithDefaults);
-
-    setSemestersData(prev => ({
-      ...prev,
-      [semesterKey]: {
-        ...(prev[semesterKey] || {}),
-        id: semesterKey,
-        year,
-        semesterInYear,
-        courses: newCoursesWithDefaults,
-        sgpa: newSgpa,
-        totalCredits: newTotalCredits,
-        isManual: false,
-      },
-    }));
-  }
-};
-
-
-=======
   const handleSelectSemester = (semesterKey: string, year: number, semesterInYear: number) => {
     setSelectedSemesterKey(semesterKey);
+    const defaultCoursesList = defaultCoursesBySemester[semesterKey] || [];
     const semesterExists = !!semestersData[semesterKey];
-    
-    const shouldInitializeCourses = !semesterExists ||
-                                   (semestersData[semesterKey] && !semestersData[semesterKey].isManual && (!semestersData[semesterKey].courses || semestersData[semesterKey].courses.length === 0));
 
+    const shouldInitializeCourses = !semesterExists ||
+      (!semestersData[semesterKey].isManual &&
+        (!semestersData[semesterKey].courses || semestersData[semesterKey].courses.length === 0));
 
     if (shouldInitializeCourses) {
       const newCoursesWithDefaults: Course[] = defaultCoursesList.map((course, index) => ({
         ...course,
         id: `${semesterKey}-${course.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}-${Date.now().toString(36)}${Math.random().toString(36).substring(2, 7)}`,
-        gradePoint: 0, // Default to 0 (F grade)
+        gradePoint: 0,
       }));
+
       const newTotalCredits = newCoursesWithDefaults.reduce((sum, c) => sum + c.credits, 0);
       const newSgpa = calculateSGPA(newCoursesWithDefaults);
 
       setSemestersData(prev => ({
         ...prev,
         [semesterKey]: {
-          ...(prev[semesterKey] || {}), 
+          ...(prev[semesterKey] || {}),
           id: semesterKey,
           year,
           semesterInYear,
           courses: newCoursesWithDefaults,
           sgpa: newSgpa,
           totalCredits: newTotalCredits,
-          isManual: false, 
+          isManual: false,
         },
       }));
     }
   };
->>>>>>> cc0f0cd0364566cc6b7a304af823bf97f77f4a8b
 
   const handleAddCourse = (newCourseData: Omit<Course, 'id'>) => {
     if (!selectedSemesterKey) return;
@@ -225,7 +188,7 @@ export default function HomePage() {
       updatedSemester.courses = [...updatedSemester.courses, newCourse];
       updatedSemester.totalCredits = updatedSemester.courses.reduce((sum, c) => sum + c.credits, 0);
       updatedSemester.sgpa = calculateSGPA(updatedSemester.courses);
-      updatedSemester.isManual = false;
+      updatedSemester.isManual = false; // Ensure new courses make semester not manual
       return { ...prev, [selectedSemesterKey]: updatedSemester };
     });
   };
@@ -274,22 +237,21 @@ export default function HomePage() {
     });
   };
 
-
-  const handleAddManualSgpa = (year: number, semesterInYear: number, sgpa: number, totalCredits: number) => {
-    const semesterKey = `Y${year}S${semesterInYear}`;
-    setSemestersData(prev => ({
-      ...prev,
-      [semesterKey]: {
-        id: semesterKey,
-        year,
-        semesterInYear,
-        courses: [],
-        sgpa,
-        totalCredits,
-        isManual: true,
-      },
-    }));
-  };
+  // const handleAddManualSgpa = (year: number, semesterInYear: number, sgpa: number, totalCredits: number) => { // Removed function
+  //   const semesterKey = `Y${year}S${semesterInYear}`;
+  //   setSemestersData(prev => ({
+  //     ...prev,
+  //     [semesterKey]: {
+  //       id: semesterKey,
+  //       year,
+  //       semesterInYear,
+  //       courses: [],
+  //       sgpa,
+  //       totalCredits,
+  //       isManual: true,
+  //     },
+  //   }));
+  // };
 
   const currentSemesterDetails = selectedSemesterKey ? semestersData[selectedSemesterKey] : null;
 
@@ -389,13 +351,8 @@ export default function HomePage() {
         </div>
 
         <section aria-labelledby="additional-tools-title" className="pt-4">
-            <div className="grid md:grid-cols-2 gap-8">
-                <CgpaHistoryTable semestersData={semestersData} />
-                <ManualSgpaForm
-                    onAddManualSgpa={handleAddManualSgpa}
-                    existingSemesterKeys={Object.keys(semestersData).filter(key => semestersData[key].isManual || (semestersData[key].courses && semestersData[key].courses.length > 0))}
-                />
-            </div>
+             <CgpaHistoryTable semestersData={semestersData} />
+             {/* ManualSgpaForm was here */}
         </section>
 
       </main>
