@@ -17,17 +17,87 @@ import { AlertCircle, BookOpenCheck, BookMarked } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
 
-const defaultCoursesList: Omit<Course, 'id' | 'gradePoint'>[] = [
-  { name: "Communicative English", credits: 3 },
-  { name: "Mathematics – I", credits: 3 },
-  { name: "Applied Chemistry", credits: 3 },
-  { name: "Programming for Problem Solving using C", credits: 3 },
-  { name: "Computer Engineering Workshop", credits: 3 },
-  { name: "English Communication Skills Laboratory", credits: 1.5 },
-  { name: "Applied Chemistry Lab", credits: 1.5 },
-  { name: "Programming for Problem Solving using C Lab", credits: 1.5 },
-  { name: "Environmental Science*", credits: 0 },
-];
+const defaultCoursesBySemester: Record<string,Omit<Course, 'id' | 'gradePoint'>[]> = {
+  Y1S1: [
+    { name: "Communicative English", credits: 3 },
+    { name: "Mathematics – I", credits: 3 },
+    { name: "Applied Chemistry", credits: 3 },
+    { name: "Programming for Problem Solving using C", credits: 3 },
+    { name: "Computer Engineering Workshop", credits: 3 },
+    { name: "English Communication Skills Laboratory", credits: 1.5 },
+    { name: "Applied Chemistry Lab", credits: 1.5 },
+    { name: "Programming for Problem Solving using C Lab", credits: 1.5 },
+    { name: "Environmental Science*", credits: 0 },
+  ],
+  Y1S2:[
+    { name: "Mathematics – II", credits: 3 },
+    { name: "Applied Physics", credits: 3 },
+    { name: "Digital Logic Design", credits: 3 },
+    { name: "Python Programming", credits: 3 },
+    { name: "Data Structures", credits: 3 },
+    { name: "Applied Physics Lab", credits: 1.5 },
+    { name: "Python Programming Lab", credits: 1.5 },
+    { name: "Data Structures Lab", credits: 1.5 },
+    { name: "Constitution of India", credits: 0 },
+  ],
+  Y2S1:[
+    { name: "Mathematics III", credits: 3 },
+    { name: "Mathematical Foundations of Computer Science", credits: 3 },
+    { name: "Introduction to Artificial Intelligence and Machine Learning", credits: 3 },
+    { name: "Object Oriented Programming with Java", credits: 3 },
+    { name: "Database Management Systems", credits: 3 },
+    { name: "Introduction to Artificial Intelligence and Machine Learning Lab", credits: 1.5 },
+    { name: "Object Oriented Programming with Java Lab", credits: 1.5 },
+    { name: "Database Management Systems Lab", credits: 1.5 },
+    { name: "Mobile App Development", credits: 2 },
+    { name: "Essence of Indian Traditional Knowledge", credits: 0 },
+  ],
+  Y2S2:[
+    { name: "Probability and Statistics", credits: 3 },
+    { name: "Computer Organization", credits: 3 },
+    { name: "Data Warehousing and Mining", credits: 3 },
+    { name: "Formal Languages and Automata Theory", credits: 3 },
+    { name: "Managerial Economics and Financial Accountancy", credits: 3 },
+    { name: "R Programming Lab", credits: 1.5 },
+    { name: "Data Mining using Python Lab", credits: 1.5 },
+    { name: "Web Application Development Lab", credits: 1.5 },
+    { name: "Natural Language Processing with Python", credits: 2 },
+  ],
+  Y3S1:[
+    {name:"Compiler Design",credits:3},
+    {name:"Operating Systems",credits:3},
+    {name:"Machine Learning",credits:3},
+    {name:"Open Elective-I",credits:3},
+    {name:"Professional Elective-I",credits:3},
+    {name:"Operating Systems & Compiler Design Lab",credits:1.5},
+    {name:"Machine Learning Lab",credits:1.5},
+    {name:"CI-CD using DevOps",credits:2},
+    {name:"Employability Skills-I",credits:0},
+    {name:"Summer Internship",credits:1.5}
+  ],
+  Y3S2:[
+    {name:"Computer Networks",credits:3},
+    {name:"Deep Learning",credits:3},
+    {name:"Design and Analysis of Algorithms",credits:3},
+    {name:"Professional Elective-II",credits:3},
+    {name:"Open Elective-II",credits:3},
+    {name:"Computer Networks Lab",credits:1.5},
+    {name:"Algorithms for Efficient Coding Lab",credits:1.5},
+    {name:"Deep Learning with Tensorflow",credits:1.5},
+    {name:"Skill Oriented Course - IV",credits:2},
+    {name:"Employability skills-II",credits:0}
+  ],
+  Y4S1:[
+    {name:"Professional  Elective-III",credits:3},
+    {name:"Professional  Elective-IV",credits:3},
+    {name:"Professional  Elective-V",credits:3},
+    {name:"Open Elective-III",credits:3},
+    {name:"Open Elective-IV",credits:3},
+    {name:"Universal Human Values 2: Understanding Harmony",credits:3},
+    {name:"Skill Oriented Course",credits:2},
+    {name:"Industrial/Research Internship",credits:3},
+  ]
+};
 
 export default function HomePage() {
   const [semestersData, setSemestersData] = useState<Record<string, SemesterDetails>>({});
@@ -70,39 +140,42 @@ export default function HomePage() {
   }, [semestersData, selectedSemesterKey, isLoading]);
 
 
-  const handleSelectSemester = (semesterKey: string, year: number, semesterInYear: number) => {
-    setSelectedSemesterKey(semesterKey);
-    const semesterExists = !!semestersData[semesterKey];
-    // Check if it's manual or has courses already.
-    // Initialize if it doesn't exist OR if it's not manual AND it's currently empty (or was empty before default courses were added)
-    const shouldInitializeCourses = !semesterExists ||
-                                   (!semestersData[semesterKey].isManual && (!semestersData[semesterKey].courses || semestersData[semesterKey].courses.length === 0));
+ const handleSelectSemester = (semesterKey: string, year: number, semesterInYear: number) => {
+  setSelectedSemesterKey(semesterKey);
+  const defaultCoursesList = defaultCoursesBySemester[semesterKey] || [];
+  const semesterExists = !!semestersData[semesterKey];
+
+  const shouldInitializeCourses = !semesterExists ||
+    (!semestersData[semesterKey].isManual &&
+      (!semestersData[semesterKey].courses || semestersData[semesterKey].courses.length === 0));
+
+  if (shouldInitializeCourses) {
+    const newCoursesWithDefaults: Course[] = defaultCoursesList.map((course, index) => ({
+      ...course,
+      id: `${semesterKey}-${course.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}-${Date.now().toString(36)}${Math.random().toString(36).substring(2, 7)}`,
+      gradePoint: 0,
+    }));
+
+    const newTotalCredits = newCoursesWithDefaults.reduce((sum, c) => sum + c.credits, 0);
+    const newSgpa = calculateSGPA(newCoursesWithDefaults);
+
+    setSemestersData(prev => ({
+      ...prev,
+      [semesterKey]: {
+        ...(prev[semesterKey] || {}),
+        id: semesterKey,
+        year,
+        semesterInYear,
+        courses: newCoursesWithDefaults,
+        sgpa: newSgpa,
+        totalCredits: newTotalCredits,
+        isManual: false,
+      },
+    }));
+  }
+};
 
 
-    if (shouldInitializeCourses) {
-      const newCoursesWithDefaults: Course[] = defaultCoursesList.map((course, index) => ({
-        ...course,
-        id: `${semesterKey}-${course.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}-${Date.now().toString(36)}${Math.random().toString(36).substring(2, 7)}`,
-        gradePoint: 0,
-      }));
-      const newTotalCredits = newCoursesWithDefaults.reduce((sum, c) => sum + c.credits, 0);
-      const newSgpa = calculateSGPA(newCoursesWithDefaults);
-
-      setSemestersData(prev => ({
-        ...prev,
-        [semesterKey]: {
-          ...(prev[semesterKey] || {}), 
-          id: semesterKey,
-          year,
-          semesterInYear,
-          courses: newCoursesWithDefaults,
-          sgpa: newSgpa,
-          totalCredits: newTotalCredits,
-          isManual: false, 
-        },
-      }));
-    }
-  };
 
   const handleAddCourse = (newCourseData: Omit<Course, 'id'>) => {
     if (!selectedSemesterKey) return;
