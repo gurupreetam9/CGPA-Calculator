@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,6 +25,8 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
+import { formatSemesterKey } from "@/lib/gpa-calculator";
+
 
 const manualSgpaSchema = z.object({
   year: z.string().min(1, "Year is required."),
@@ -74,20 +77,10 @@ export function ManualSgpaForm({ onAddManualSgpa, existingSemesterKeys }: Manual
       description: `SGPA for Year ${year}, Semester ${semesterInYear} has been recorded.`,
     });
   }
-  
-  // Helper function to format semester key
-  const formatSemesterKey = (key: string) => {
-    const yearMatch = key.match(/Y(\d+)/);
-    const semesterMatch = key.match(/S(\d+)/);
-    if (yearMatch && semesterMatch) {
-      return `Year ${yearMatch[1]}, Semester ${semesterMatch[1]}`;
-    }
-    return key;
-  }
 
 
   return (
-    <Card className="shadow-lg">
+    <Card className="shadow-xl">
       <CardHeader>
         <div className="flex items-center gap-3">
           <BookPlus className="h-8 w-8 text-primary" />

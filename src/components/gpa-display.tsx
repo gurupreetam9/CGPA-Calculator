@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Calculator } from "lucide-react";
@@ -16,7 +17,7 @@ export function GpaDisplay({ currentSgpa, overallCgpa, selectedSemesterKey, isLo
   const cgpaText = overallCgpa !== null ? overallCgpa.toFixed(2) : "N/A";
 
   return (
-    <Card className="shadow-lg">
+    <Card className="shadow-xl">
       <CardHeader>
         <div className="flex items-center gap-3">
           <Calculator className="h-8 w-8 text-primary" />
@@ -35,7 +36,7 @@ export function GpaDisplay({ currentSgpa, overallCgpa, selectedSemesterKey, isLo
             {isLoading ? (
               <Skeleton className="h-10 w-24 mt-1" />
             ) : (
-              <p className="text-3xl font-bold text-primary">{sgpaText}</p>
+              <p className="text-3xl font-extrabold text-primary">{sgpaText}</p>
             )}
           </div>
           <div className="h-12 w-px bg-border hidden sm:block" />
@@ -45,13 +46,13 @@ export function GpaDisplay({ currentSgpa, overallCgpa, selectedSemesterKey, isLo
             {isLoading ? (
               <Skeleton className="h-10 w-24 mt-1" />
             ) : (
-            <p className="text-3xl font-bold text-accent-foreground">{cgpaText}</p>
+            <p className="text-3xl font-extrabold text-accent-foreground">{cgpaText}</p>
             )}
           </div>
         </div>
         {!selectedSemesterKey && currentSgpa === null && (
-            <p className="text-center text-sm text-muted-foreground">
-                Select a semester to view or calculate SGPA.
+            <p className="text-center text-sm text-muted-foreground pt-2">
+                Select a semester to view its SGPA.
             </p>
         )}
       </CardContent>

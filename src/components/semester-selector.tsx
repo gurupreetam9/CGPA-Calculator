@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { HTMLAttributes } from 'react';
@@ -24,9 +25,9 @@ export function SemesterSelector({
   ...props
 }: SemesterSelectorProps) {
   return (
-    <Card className={cn("shadow-lg", className)} {...props}>
+    <Card className={cn("shadow-xl", className)} {...props}>
       <CardHeader>
-        <CardTitle className="text-2xl font-semibold">Select Semester</CardTitle>
+        <CardTitle id="semester-selection-title" className="text-2xl font-semibold">Select Semester</CardTitle>
         <CardDescription>Choose a year and semester to manage courses and view GPA.</CardDescription>
       </CardHeader>
       <CardContent>

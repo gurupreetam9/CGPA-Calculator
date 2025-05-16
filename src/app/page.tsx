@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -98,7 +99,6 @@ export default function HomePage() {
       updatedSemester.courses = updatedSemester.courses.filter(c => c.id !== courseId);
       updatedSemester.totalCredits = updatedSemester.courses.reduce((sum, c) => sum + c.credits, 0);
       updatedSemester.sgpa = calculateSGPA(updatedSemester.courses);
-      // isManual status remains false or whatever it was, deleting course doesn't make it manual
       return { ...prev, [selectedSemesterKey]: updatedSemester };
     });
     toast({ title: "Course Deleted", description: "The course has been removed."});
@@ -112,7 +112,7 @@ export default function HomePage() {
         id: semesterKey,
         year,
         semesterInYear,
-        courses: [], // Manual entry overrides courses for GPA calc
+        courses: [],
         sgpa,
         totalCredits,
         isManual: true,
@@ -143,53 +143,78 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader />
-      <main className="flex-1 container mx-auto px-2 sm:px-4 py-6 space-y-6">
-        <SemesterSelector
-          selectedSemesterKey={selectedSemesterKey}
-          onSelectSemester={handleSelectSemester}
-        />
-
-        {selectedSemesterKey && currentSemesterDetails && !currentSemesterDetails.isManual && (
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-2xl font-semibold">Courses for {formatSemesterKey(selectedSemesterKey)}</CardTitle>
-              <CardDescription>Add or manage courses for the selected semester.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <CourseInputForm onAddCourse={handleAddCourse} />
-              <Separator />
-              <CourseListTable
-                courses={currentSemesterDetails.courses || []}
-                onDeleteCourse={handleDeleteCourse}
-              />
-            </CardContent>
-          </Card>
-        )}
-
-        {selectedSemesterKey && currentSemesterDetails && currentSemesterDetails.isManual && (
-             <Alert variant="default" className="border-accent bg-accent/10 text-accent-foreground">
-                <AlertCircle className="h-5 w-5 text-accent" />
-                <AlertTitle className="font-semibold">Manual Entry Active</AlertTitle>
-                <AlertDescription>
-                SGPA for {formatSemesterKey(selectedSemesterKey)} was entered manually. 
-                Course list is disabled for this semester. To add courses, clear manual entry (future feature) or select a different semester.
-                </AlertDescription>
-            </Alert>
-        )}
-
-        <GpaDisplay
-          currentSgpa={currentSgpa}
-          overallCgpa={overallCgpa}
-          selectedSemesterKey={selectedSemesterKey}
-        />
-        
-        <div className="grid md:grid-cols-2 gap-6">
-            <CgpaHistoryTable semestersData={semestersData} />
-            <ManualSgpaForm 
-                onAddManualSgpa={handleAddManualSgpa} 
-                existingSemesterKeys={Object.keys(semestersData).filter(key => semestersData[key].isManual || (semestersData[key].courses && semestersData[key].courses.length > 0))}
+      <main className="flex-1 container mx-auto px-2 sm:px-4 py-8 space-y-8">
+        <section aria-labelledby="semester-selection-title">
+            <SemesterSelector
+            selectedSemesterKey={selectedSemesterKey}
+            onSelectSemester={handleSelectSemester}
             />
+        </section>
+
+        <div className="grid md:grid-cols-3 gap-8 items-start">
+          <div className="md:col-span-2 space-y-6">
+            {selectedSemesterKey && currentSemesterDetails && !currentSemesterDetails.isManual && (
+              <Card className="shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-2xl font-semibold">Courses for {formatSemesterKey(selectedSemesterKey)}</CardTitle>
+                  <CardDescription>Add or manage courses for the selected semester.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <CourseInputForm onAddCourse={handleAddCourse} />
+                  <Separator />
+                  <CourseListTable
+                    courses={currentSemesterDetails.courses || []}
+                    onDeleteCourse={handleDeleteCourse}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {selectedSemesterKey && currentSemesterDetails && currentSemesterDetails.isManual && (
+                <Alert variant="default" className="border-accent bg-accent/10 text-accent-foreground">
+                    <AlertCircle className="h-5 w-5 text-accent" />
+                    <AlertTitle className="font-semibold">Manual Entry Active</AlertTitle>
+                    <AlertDescription>
+                    SGPA for {formatSemesterKey(selectedSemesterKey)} was entered manually. 
+                    Course list is disabled for this semester.
+                    </AlertDescription>
+                </Alert>
+            )}
+            {!selectedSemesterKey && (
+                 <Card className="shadow-xl">
+                    <CardHeader>
+                        <CardTitle className="text-2xl font-semibold">Course Management</CardTitle>
+                        <CardDescription>Select a semester above to manage courses and view SGPA.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-center py-10 text-muted-foreground">
+                            <BookOpenCheck className="mx-auto h-12 w-12 mb-3 text-primary" />
+                            <p className="text-lg">No semester selected.</p>
+                            <p className="text-sm">Your courses and SGPA for the selected semester will appear here.</p>
+                        </div>
+                    </CardContent>
+                 </Card>
+            )}
+          </div>
+          
+          <div className="md:col-span-1 space-y-6">
+            <GpaDisplay
+            currentSgpa={currentSgpa}
+            overallCgpa={overallCgpa}
+            selectedSemesterKey={selectedSemesterKey}
+            />
+          </div>
         </div>
+        
+        <section aria-labelledby="additional-tools-title" className="pt-4">
+            <div className="grid md:grid-cols-2 gap-8">
+                <CgpaHistoryTable semestersData={semestersData} />
+                <ManualSgpaForm 
+                    onAddManualSgpa={handleAddManualSgpa} 
+                    existingSemesterKeys={Object.keys(semestersData).filter(key => semestersData[key].isManual || (semestersData[key].courses && semestersData[key].courses.length > 0))}
+                />
+            </div>
+        </section>
 
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground border-t">

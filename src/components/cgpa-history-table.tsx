@@ -1,3 +1,4 @@
+
 "use client";
 
 import { History } from "lucide-react";
@@ -31,12 +32,12 @@ export function CgpaHistoryTable({ semestersData }: CgpaHistoryTableProps) {
 
   if (sortedSemesters.length === 0) {
     return (
-      <Card className="shadow-lg">
+      <Card className="shadow-xl">
         <CardHeader>
           <div className="flex items-center gap-3">
             <History className="h-8 w-8 text-primary" />
             <div>
-              <CardTitle className="text-2xl font-semibold">CGPA History</CardTitle>
+              <CardTitle id="additional-tools-title" className="text-2xl font-semibold">CGPA History</CardTitle>
               <CardDescription>No semester data available to display history.</CardDescription>
             </div>
           </div>
@@ -51,12 +52,12 @@ export function CgpaHistoryTable({ semestersData }: CgpaHistoryTableProps) {
   }
 
   return (
-    <Card className="shadow-lg">
+    <Card className="shadow-xl">
       <CardHeader>
          <div className="flex items-center gap-3">
             <History className="h-8 w-8 text-primary" />
             <div>
-              <CardTitle className="text-2xl font-semibold">CGPA History</CardTitle>
+              <CardTitle id="additional-tools-title" className="text-2xl font-semibold">CGPA History</CardTitle>
               <CardDescription>Summary of your SGPA for each semester.</CardDescription>
             </div>
           </div>
