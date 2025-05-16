@@ -74,7 +74,8 @@ export default function HomePage() {
     setSelectedSemesterKey(semesterKey);
     const semesterExists = !!semestersData[semesterKey];
     // Check if it's manual or has courses already.
-    const shouldInitializeCourses = !semesterExists || 
+    // Initialize if it doesn't exist OR if it's not manual AND it's currently empty (or was empty before default courses were added)
+    const shouldInitializeCourses = !semesterExists ||
                                    (!semestersData[semesterKey].isManual && semestersData[semesterKey].courses.length === 0);
 
 
@@ -82,7 +83,7 @@ export default function HomePage() {
       const newCoursesWithDefaults: Course[] = defaultCoursesList.map((course, index) => ({
         ...course,
         id: `${semesterKey}-${course.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}-${Date.now().toString(36)}${Math.random().toString(36).substring(2, 7)}`,
-        gradePoint: 0, 
+        gradePoint: 0,
       }));
       const newTotalCredits = newCoursesWithDefaults.reduce((sum, c) => sum + c.credits, 0);
       const newSgpa = calculateSGPA(newCoursesWithDefaults);
@@ -90,14 +91,14 @@ export default function HomePage() {
       setSemestersData(prev => ({
         ...prev,
         [semesterKey]: {
-          ...(prev[semesterKey] || {}), // Preserve existing data if any, like year/semesterInYear if already set
+          ...(prev[semesterKey] || {}), 
           id: semesterKey,
           year,
           semesterInYear,
           courses: newCoursesWithDefaults,
           sgpa: newSgpa,
           totalCredits: newTotalCredits,
-          isManual: false, // Ensure isManual is false when courses are added
+          isManual: false, 
         },
       }));
     }
@@ -106,17 +107,17 @@ export default function HomePage() {
   const handleAddCourse = (newCourseData: Omit<Course, 'id'>) => {
     if (!selectedSemesterKey) return;
 
-    const newCourse: Course = { 
-        ...newCourseData, 
+    const newCourse: Course = {
+        ...newCourseData,
         id: `${selectedSemesterKey}-${newCourseData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now().toString(36)}${Math.random().toString(36).substring(2, 7)}`
     };
-    
+
     setSemestersData(prev => {
       const updatedSemester = { ...prev[selectedSemesterKey] };
       updatedSemester.courses = [...updatedSemester.courses, newCourse];
       updatedSemester.totalCredits = updatedSemester.courses.reduce((sum, c) => sum + c.credits, 0);
       updatedSemester.sgpa = calculateSGPA(updatedSemester.courses);
-      updatedSemester.isManual = false; 
+      updatedSemester.isManual = false;
       return { ...prev, [selectedSemesterKey]: updatedSemester };
     });
   };
@@ -133,7 +134,7 @@ export default function HomePage() {
     });
     toast({ title: "Course Deleted", description: "The course has been removed."});
   };
-  
+
   const handleUpdateCourseGrade = (courseId: string, newGradePoint: number) => {
     if (!selectedSemesterKey) return;
     if (isNaN(newGradePoint) || newGradePoint < 0 || newGradePoint > 10) {
@@ -149,16 +150,16 @@ export default function HomePage() {
       const currentSemester = prev[selectedSemesterKey];
       if (!currentSemester) return prev;
 
-      const updatedCourses = currentSemester.courses.map(c => 
+      const updatedCourses = currentSemester.courses.map(c =>
         c.id === courseId ? { ...c, gradePoint: newGradePoint } : c
       );
-      
+
       const updatedSemester = {
         ...currentSemester,
         courses: updatedCourses,
-        sgpa: calculateSGPA(updatedCourses), 
+        sgpa: calculateSGPA(updatedCourses),
       };
-      
+
       return { ...prev, [selectedSemesterKey]: updatedSemester };
     });
   };
@@ -172,7 +173,7 @@ export default function HomePage() {
         id: semesterKey,
         year,
         semesterInYear,
-        courses: [], 
+        courses: [],
         sgpa,
         totalCredits,
         isManual: true,
@@ -181,7 +182,7 @@ export default function HomePage() {
   };
 
   const currentSemesterDetails = selectedSemesterKey ? semestersData[selectedSemesterKey] : null;
-  
+
   const currentSgpa = useMemo(() => {
     if (currentSemesterDetails) {
         return currentSemesterDetails.sgpa;
@@ -213,14 +214,6 @@ export default function HomePage() {
 
         <div className="grid md:grid-cols-3 gap-8 items-start">
           <div className="md:col-span-2 space-y-6">
-            <GpaDisplay
-            currentSgpa={currentSgpa}
-            overallCgpa={overallCgpa}
-            selectedSemesterKey={selectedSemesterKey}
-            isLoading={isLoading && !selectedSemesterKey} 
-            />
-          </div>
-          <div className="md:col-span-1 space-y-6">
             {selectedSemesterKey && currentSemesterDetails && !currentSemesterDetails.isManual && (
               <Card className="shadow-xl">
                 <CardHeader>
@@ -249,7 +242,7 @@ export default function HomePage() {
                     <AlertCircle className="h-5 w-5 text-accent" />
                     <AlertTitle className="font-semibold">Manual Entry Active</AlertTitle>
                     <AlertDescription>
-                    SGPA for {formatSemesterKey(selectedSemesterKey)} was entered manually. 
+                    SGPA for {formatSemesterKey(selectedSemesterKey)} was entered manually.
                     Course list is disabled for this semester.
                     </AlertDescription>
                 </Alert>
@@ -275,13 +268,21 @@ export default function HomePage() {
                  </Card>
             )}
           </div>
+          <div className="md:col-span-1 space-y-6">
+            <GpaDisplay
+            currentSgpa={currentSgpa}
+            overallCgpa={overallCgpa}
+            selectedSemesterKey={selectedSemesterKey}
+            isLoading={isLoading && !selectedSemesterKey}
+            />
+          </div>
         </div>
-        
+
         <section aria-labelledby="additional-tools-title" className="pt-4">
             <div className="grid md:grid-cols-2 gap-8">
                 <CgpaHistoryTable semestersData={semestersData} />
-                <ManualSgpaForm 
-                    onAddManualSgpa={handleAddManualSgpa} 
+                <ManualSgpaForm
+                    onAddManualSgpa={handleAddManualSgpa}
                     existingSemesterKeys={Object.keys(semestersData).filter(key => semestersData[key].isManual || (semestersData[key].courses && semestersData[key].courses.length > 0))}
                 />
             </div>
