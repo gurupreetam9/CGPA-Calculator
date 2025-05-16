@@ -128,18 +128,39 @@ export default function HomePage() {
     toast({ title: "Course Deleted", description: "The course has been removed."});
   };
   
-  // Placeholder for future functionality: Update course grade directly in the table
-  // const handleUpdateCourseGrade = (courseId: string, newGradePoint: number) => {
-  //   if (!selectedSemesterKey) return;
-  //   setSemestersData(prev => {
-  //     const updatedSemester = { ...prev[selectedSemesterKey] };
-  //     updatedSemester.courses = updatedSemester.courses.map(c => 
-  //       c.id === courseId ? { ...c, gradePoint: newGradePoint } : c
-  //     );
-  //     updatedSemester.sgpa = calculateSGPA(updatedSemester.courses);
-  //     return { ...prev, [selectedSemesterKey]: updatedSemester };
-  //   });
-  // };
+  const handleUpdateCourseGrade = (courseId: string, newGradePoint: number) => {
+    if (!selectedSemesterKey) return;
+    if (isNaN(newGradePoint) || newGradePoint < 0 || newGradePoint > 10) {
+        toast({
+            title: "Invalid Grade Point",
+            description: "Grade point must be a number between 0 and 10.",
+            variant: "destructive",
+        });
+        // Optionally, revert the input to the old value if you store it temporarily,
+        // or re-fetch/re-render to show the current valid state.
+        // For simplicity, we'll just show a toast and the invalid value might remain until next valid update.
+        return;
+    }
+
+    setSemestersData(prev => {
+      const currentSemester = prev[selectedSemesterKey];
+      if (!currentSemester) return prev;
+
+      const updatedCourses = currentSemester.courses.map(c => 
+        c.id === courseId ? { ...c, gradePoint: newGradePoint } : c
+      );
+      
+      const updatedSemester = {
+        ...currentSemester,
+        courses: updatedCourses,
+        sgpa: calculateSGPA(updatedCourses), // Recalculate SGPA
+      };
+      
+      return { ...prev, [selectedSemesterKey]: updatedSemester };
+    });
+    // Optional: toast for successful update
+    // toast({ title: "Grade Updated", description: "Course grade point has been updated."});
+  };
 
 
   const handleAddManualSgpa = (year: number, semesterInYear: number, sgpa: number, totalCredits: number) => {
@@ -198,7 +219,7 @@ export default function HomePage() {
                     <BookMarked className="h-8 w-8 text-primary" />
                     <div>
                         <CardTitle id="course-management-title" className="text-2xl font-semibold">Courses for {formatSemesterKey(selectedSemesterKey)}</CardTitle>
-                        <CardDescription>Add or manage courses for the selected semester. Default courses are pre-filled; enter grade points or add more courses.</CardDescription>
+                        <CardDescription>Add or manage courses for the selected semester. Enter grade points for default courses or add new ones.</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -208,7 +229,7 @@ export default function HomePage() {
                   <CourseListTable
                     courses={currentSemesterDetails.courses || []}
                     onDeleteCourse={handleDeleteCourse}
-                    // onUpdateCourseGrade={handleUpdateCourseGrade} // Pass this if table becomes editable
+                    onUpdateCourseGrade={handleUpdateCourseGrade}
                   />
                 </CardContent>
               </Card>
