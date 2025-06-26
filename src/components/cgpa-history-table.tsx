@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import type { SemesterDetails } from "@/types";
 import { formatSemesterKey } from "@/lib/gpa-calculator";
 
@@ -62,38 +63,76 @@ export function CgpaHistoryTable({ semestersData }: CgpaHistoryTableProps) {
             </div>
           </div>
       </CardHeader>
-      <CardContent className="overflow-x-auto">
-        <Table>
-          <TableCaption>A list of your semester performance.</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Semester</TableHead>
-              <TableHead className="text-center">Total Credits</TableHead>
-              <TableHead className="text-center">SGPA</TableHead>
-              <TableHead className="text-center">Entry Type</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+      <CardContent>
+        {/* Desktop View: Table */}
+        <div className="hidden md:block">
+            <Table>
+            <TableCaption>A list of your semester performance.</TableCaption>
+            <TableHeader>
+                <TableRow>
+                <TableHead>Semester</TableHead>
+                <TableHead className="text-center">Total Credits</TableHead>
+                <TableHead className="text-center">SGPA</TableHead>
+                <TableHead className="text-center">Entry Type</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {sortedSemesters.map((semester) => (
+                <TableRow key={semester.id}>
+                    <TableCell className="font-medium">{formatSemesterKey(semester.id)}</TableCell>
+                    <TableCell className="text-center">
+                    <Badge variant="secondary">{semester.totalCredits.toFixed(1)}</Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                    <Badge variant="default">{semester.sgpa !== null ? semester.sgpa.toFixed(2) : "N/A"}</Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                    {semester.isManual ? (
+                        <Badge variant="outline" className="border-accent text-accent-foreground">Manual</Badge>
+                    ) : (
+                        <Badge variant="outline">Calculated</Badge>
+                    )}
+                    </TableCell>
+                </TableRow>
+                ))}
+            </TableBody>
+            </Table>
+        </div>
+
+        {/* Mobile View: Card List */}
+        <div className="block md:hidden space-y-4">
             {sortedSemesters.map((semester) => (
-              <TableRow key={semester.id}>
-                <TableCell className="font-medium">{formatSemesterKey(semester.id)}</TableCell>
-                <TableCell className="text-center">
-                  <Badge variant="secondary">{semester.totalCredits.toFixed(1)}</Badge>
-                </TableCell>
-                <TableCell className="text-center">
-                  <Badge variant="default">{semester.sgpa !== null ? semester.sgpa.toFixed(2) : "N/A"}</Badge>
-                </TableCell>
-                <TableCell className="text-center">
-                  {semester.isManual ? (
-                    <Badge variant="outline" className="border-accent text-accent-foreground">Manual</Badge>
-                  ) : (
-                    <Badge variant="outline">Calculated</Badge>
-                  )}
-                </TableCell>
-              </TableRow>
+                <Card key={semester.id} className="shadow-md">
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-base font-semibold leading-snug">{formatSemesterKey(semester.id)}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-3 gap-x-4 gap-y-2 pt-0 text-center">
+                        <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">Credits</Label>
+                            <div>
+                                <Badge variant="secondary">{semester.totalCredits.toFixed(1)}</Badge>
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">SGPA</Label>
+                            <div>
+                                <Badge variant="default">{semester.sgpa !== null ? semester.sgpa.toFixed(2) : "N/A"}</Badge>
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">Type</Label>
+                            <div>
+                                {semester.isManual ? (
+                                <Badge variant="outline" className="border-accent text-accent-foreground">Manual</Badge>
+                                ) : (
+                                <Badge variant="outline">Calculated</Badge>
+                                )}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             ))}
-          </TableBody>
-        </Table>
+        </div>
       </CardContent>
     </Card>
   );
