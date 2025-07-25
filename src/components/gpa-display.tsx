@@ -53,10 +53,10 @@ export function GpaDisplay({ currentSgpa, overallCgpa, selectedSemesterKey, isLo
   const sgpaText = currentSgpa !== null ? currentSgpa.toFixed(2) : "N/A";
   const cgpaText = overallCgpa !== null ? overallCgpa.toFixed(2) : "N/A";
 
-  const currentSgpaPercentage = currentSgpa !== null ? parseFloat((currentSgpa * 10).toFixed(1)) : null;
+  const currentSgpaPercentage = currentSgpa !== null ? parseFloat(((currentSgpa-0.75) * 10).toFixed(1)) : null;
   const sgpaPercentageText = currentSgpaPercentage !== null ? `${currentSgpaPercentage}%` : "N/A";
   
-  const currentCgpaPercentage = overallCgpa !== null ? parseFloat((overallCgpa * 10).toFixed(1)) : null;
+  const currentCgpaPercentage = overallCgpa !== null ? parseFloat(((overallCgpa-0.75) * 10).toFixed(1)) : null;
   const cgpaPercentageText = currentCgpaPercentage !== null ? `${currentCgpaPercentage}%` : "N/A";
 
   const { message: motivationalMessage, icon: MotivationalIcon, colorClass: motivationalColorClass } = getMotivationalMessage(currentSgpaPercentage);
