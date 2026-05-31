@@ -149,7 +149,7 @@ export function GpaDisplay({ currentSgpa, overallCgpa, selectedSemesterKey, isLo
                                 formatter={(value, name) => (
                                   <div className="flex flex-col">
                                     <span className="capitalize font-medium">{chartConfig[name as keyof typeof chartConfig]?.label || name}</span>
-                                    <span>{value.toFixed(2)}</span>
+                                    <span>{typeof value === 'number' ? value.toFixed(2) : value}</span>
                                   </div>
                                 )}
                               />}

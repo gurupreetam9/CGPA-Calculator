@@ -31,11 +31,12 @@ const courseFormSchema = z.object({
   name: z.string().min(2, {
     message: "Course name must be at least 2 characters.",
   }),
-  credits: z.coerce.number().min(0.5, {
-    message: "Credits must be at least 0.5.",
-  }).max(10, {
-    message: "Credits cannot exceed 10.",
-  }),
+  credits: z.preprocess(
+    (val) => (val === "" || val === undefined || val === null ? undefined : Number(val)),
+    z.number({ invalid_type_error: "Credits must be a valid number." })
+      .min(0.5, { message: "Credits must be at least 0.5." })
+      .max(10, { message: "Credits cannot exceed 10." })
+  ),
   letterGrade: z.string().refine(val => letterGrades.includes(val), {
     message: "Please select a valid grade.",
   }),
@@ -52,7 +53,7 @@ export function CourseInputForm({ onAddCourse }: CourseInputFormProps) {
     resolver: zodResolver(courseFormSchema),
     defaultValues: {
       name: "",
-      credits: undefined,
+      credits: "" as any, // Set as empty string to avoid undefined coercion errors
       letterGrade: "F", // Default to F
     },
   });
@@ -70,7 +71,7 @@ export function CourseInputForm({ onAddCourse }: CourseInputFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-1">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
           <FormField
             control={form.control}
             name="name"

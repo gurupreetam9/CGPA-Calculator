@@ -13,9 +13,10 @@ import { CgpaHistoryTable } from "@/components/cgpa-history-table";
 import { calculateSGPA, calculateCGPA, formatSemesterKey } from "@/lib/gpa-calculator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { AlertCircle, BookOpenCheck, BookMarked } from "lucide-react";
+import { AlertCircle, BookOpenCheck, BookMarked, Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 const defaultCoursesBySemester: Record<string,Omit<Course, 'id' | 'gradePoint'>[]> = {
   Y1S1: [
@@ -100,31 +101,65 @@ const defaultCoursesBySemester: Record<string,Omit<Course, 'id' | 'gradePoint'>[
 };
 
 export default function HomePage() {
+  const { user, loading: authLoading, triggerCloudSync, pullAndMergeData } = useAuth();
   const [semestersData, setSemestersData] = useState<Record<string, SemesterDetails>>({});
   const [selectedSemesterKey, setSelectedSemesterKey] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true); // For initial load from localStorage
+  const [prevUser, setPrevUser] = useState<string | null>(null);
 
-  // Load data from localStorage on initial mount
+  // Load data and handle Cloud Sync/Merge on mount or when user changes
   useEffect(() => {
-    try {
-      const storedSemesters = localStorage.getItem("guruSemesters");
-      const storedSelectedSemester = localStorage.getItem("guruSelectedSemester");
-      if (storedSemesters) {
-        setSemestersData(JSON.parse(storedSemesters));
+    const handleInitialLoadAndSync = async () => {
+      // 1. Read what's currently in localStorage first (as early fallback)
+      let currentLocalSemesters: Record<string, SemesterDetails> = {};
+      let currentLocalSelectedKey: string | null = null;
+      try {
+        const storedSemesters = localStorage.getItem("guruSemesters");
+        const storedSelectedSemester = localStorage.getItem("guruSelectedSemester");
+        if (storedSemesters) {
+          currentLocalSemesters = JSON.parse(storedSemesters);
+          setSemestersData(currentLocalSemesters);
+        }
+        if (storedSelectedSemester) {
+          currentLocalSelectedKey = JSON.parse(storedSelectedSemester);
+          setSelectedSemesterKey(currentLocalSelectedKey);
+        }
+      } catch (error) {
+        console.error("Failed to load data from localStorage", error);
       }
-      if (storedSelectedSemester) {
-        setSelectedSemesterKey(JSON.parse(storedSelectedSemester));
-      }
-    } catch (error) {
-      console.error("Failed to load data from localStorage", error);
-      toast({ title: "Error", description: "Could not load saved data.", variant: "destructive"});
-    }
-    setIsLoading(false);
-  }, []);
 
-  // Save data to localStorage whenever it changes
+      // 2. If auth is still loading, wait for it
+      if (authLoading) return;
+
+      // 3. If a user just logged in (transitioned from logged out to logged in)
+      if (user && prevUser !== user.uid) {
+        // Fetch from cloud and merge
+        const result = await pullAndMergeData(currentLocalSemesters, currentLocalSelectedKey);
+        if (result.synced) {
+          setSemestersData(result.mergedSemesters);
+          setSelectedSemesterKey(result.mergedSelectedKey);
+          // Persist merged data to localStorage
+          localStorage.setItem("guruSemesters", JSON.stringify(result.mergedSemesters));
+          if (result.mergedSelectedKey) {
+            localStorage.setItem("guruSelectedSemester", JSON.stringify(result.mergedSelectedKey));
+          } else {
+            localStorage.removeItem("guruSelectedSemester");
+          }
+        }
+        setPrevUser(user.uid);
+      } else if (!user) {
+        setPrevUser(null);
+      }
+
+      setIsLoading(false);
+    };
+
+    handleInitialLoadAndSync();
+  }, [user, authLoading, pullAndMergeData]);
+
+  // Save data to localStorage immediately, and to cloud with a debounce delay
   useEffect(() => {
-    if (!isLoading) { // Only save after initial load
+    if (!isLoading && !authLoading) {
         try {
             localStorage.setItem("guruSemesters", JSON.stringify(semestersData));
             if (selectedSemesterKey) {
@@ -132,12 +167,20 @@ export default function HomePage() {
             } else {
                 localStorage.removeItem("guruSelectedSemester");
             }
+
+            // Sync to cloud if user is authenticated (debounced to 1.5 seconds)
+            if (user) {
+                const timer = setTimeout(() => {
+                    triggerCloudSync(semestersData, selectedSemesterKey);
+                }, 1500);
+                return () => clearTimeout(timer);
+            }
         } catch (error) {
-            console.error("Failed to save data to localStorage", error);
-            toast({ title: "Error", description: "Could not save data. Storage might be full.", variant: "destructive"});
+            console.error("Failed to save data", error);
+            toast({ title: "Error", description: "Could not save data.", variant: "destructive"});
         }
     }
-  }, [semestersData, selectedSemesterKey, isLoading]);
+  }, [semestersData, selectedSemesterKey, isLoading, authLoading, user, triggerCloudSync]);
 
 
   const handleSelectSemester = (semesterKey: string, year: number, semesterInYear: number) => {
@@ -276,7 +319,14 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader />
-      <main className="flex-1 container mx-auto px-2 sm:px-4 py-8 space-y-8">
+      <main className="flex-1 container mx-auto px-2 sm:px-4 py-8 space-y-6">
+        <div className="border border-primary/20 bg-primary/5 text-foreground shadow-sm rounded-xl py-3 px-4 flex items-center gap-3">
+          <Info className="h-5 w-5 text-primary shrink-0 animate-pulse" />
+          <p className="text-xs sm:text-sm leading-normal">
+            <span className="font-semibold text-primary font-sans">Information Note:</span> This calculator is pre-configured with default syllabus courses specifically for students of the <span className="font-semibold text-primary">R20 JNTUK CSM (CSE-AI&ML)</span> branch.
+          </p>
+        </div>
+
         <section aria-labelledby="semester-selection-title">
             <SemesterSelector
             selectedSemesterKey={selectedSemesterKey}
