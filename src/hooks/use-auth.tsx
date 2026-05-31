@@ -115,17 +115,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Auth State Listener
   useEffect(() => {
-    const auth = getFirebaseAuth();
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      userRef.current = currentUser; // BUG-6: update ref immediately
-      setUser(currentUser);
+    try {
+      const auth = getFirebaseAuth();
+      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        userRef.current = currentUser; // BUG-6: update ref immediately
+        setUser(currentUser);
+        setLoading(false);
+        if (!currentUser) {
+          setSyncStatus("idle");
+          setLastSyncedTime(null);
+        }
+      });
+      return () => unsubscribe();
+    } catch (error) {
+      // If Firebase fails to initialize (e.g., missing env vars on Vercel),
+      // don't leave the app stuck on the loading screen forever.
+      console.error("Firebase Auth initialization failed:", error);
       setLoading(false);
-      if (!currentUser) {
-        setSyncStatus("idle");
-        setLastSyncedTime(null);
-      }
-    });
-    return () => unsubscribe();
+    }
   }, []);
 
   // Email/Password Login
