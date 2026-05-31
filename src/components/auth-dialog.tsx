@@ -122,7 +122,7 @@ export function AuthDialog({ trigger, isOpen, onOpenChange }: AuthDialogProps) {
           </Alert>
         )}
 
-        <Tabs value={activeTab} onValueChange={(val) => { setActiveTab(val as any); setAuthError(null); }} className="w-full mt-4">
+        <Tabs value={activeTab} onValueChange={(val) => { setActiveTab(val as any); setAuthError(null); setPassword(""); setConfirmPassword(""); }} className="w-full mt-4">
           <TabsList className="grid grid-cols-2 w-full bg-muted/50 rounded-xl p-1 border border-border/40">
             <TabsTrigger value="signin" className="rounded-lg text-sm transition-all py-1.5 font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
               Sign In

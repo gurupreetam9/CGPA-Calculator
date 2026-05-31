@@ -1,5 +1,5 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider, type Auth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -10,14 +10,34 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase for Server-Side Rendering (SSR) compatibility
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
+// BUG-4 fix: Lazy initialization to prevent SSR crashes.
+// Firebase Auth relies on browser APIs (indexedDB, window). By deferring
+// initialization to the first call (which only happens client-side in effects
+// and event handlers), we avoid SSR/build-time errors.
+let _app: FirebaseApp | null = null;
+let _auth: Auth | null = null;
+let _googleProvider: GoogleAuthProvider | null = null;
 
-// Force Google Auth to prompt account selection every time
-googleProvider.setCustomParameters({
-  prompt: 'select_account'
-});
+function getFirebaseApp(): FirebaseApp {
+  if (!_app) {
+    _app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  }
+  return _app;
+}
 
-export { app, auth, googleProvider };
+export function getFirebaseAuth(): Auth {
+  if (!_auth) {
+    _auth = getAuth(getFirebaseApp());
+  }
+  return _auth;
+}
+
+export function getGoogleProvider(): GoogleAuthProvider {
+  if (!_googleProvider) {
+    _googleProvider = new GoogleAuthProvider();
+    _googleProvider.setCustomParameters({
+      prompt: 'select_account',
+    });
+  }
+  return _googleProvider;
+}

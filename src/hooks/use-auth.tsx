@@ -9,8 +9,7 @@ import {
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
-import { auth, googleProvider } from "@/lib/firebase";
-import { supabase } from "@/lib/supabase";
+import { getFirebaseAuth, getGoogleProvider } from "@/lib/firebase";
 import { toast } from "@/hooks/use-toast";
 import type { SemesterDetails } from "@/types";
 
@@ -72,6 +71,37 @@ export function mergeSemesters(
   return merged;
 }
 
+// BUG-2 fix: Helper to make authenticated API calls to /api/sync
+// instead of calling Supabase directly from the client.
+async function syncApiCall(
+  method: 'GET' | 'POST',
+  user: User,
+  body?: any
+): Promise<any> {
+  const idToken = await user.getIdToken();
+
+  const options: RequestInit = {
+    method,
+    headers: {
+      'Authorization': `Bearer ${idToken}`,
+      'Content-Type': 'application/json',
+    },
+  };
+
+  if (body && method === 'POST') {
+    options.body = JSON.stringify(body);
+  }
+
+  const res = await fetch('/api/sync', options);
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || `Sync API error: ${res.status}`);
+  }
+
+  return res.json();
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -79,15 +109,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [lastSyncedTime, setLastSyncedTime] = useState<Date | null>(null);
   const [syncErrorMessage, setSyncErrorMessage] = useState<string | null>(null);
   
-  // Use a ref to store current user to avoid circular re-renders in callbacks
+  // BUG-6 fix: Update ref directly in the onAuthStateChanged callback
+  // so it's always current before any React effects run.
   const userRef = useRef<User | null>(null);
-  useEffect(() => {
-    userRef.current = user;
-  }, [user]);
 
   // Auth State Listener
   useEffect(() => {
+    const auth = getFirebaseAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      userRef.current = currentUser; // BUG-6: update ref immediately
       setUser(currentUser);
       setLoading(false);
       if (!currentUser) {
@@ -101,6 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Email/Password Login
   const loginWithEmail = async (email: string, password: string) => {
     try {
+      const auth = getFirebaseAuth();
       const result = await signInWithEmailAndPassword(auth, email, password);
       toast({
         title: "Signed In Successfully",
@@ -110,7 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       console.error("Firebase Login Error", error);
       let message = "Invalid email or password.";
-      if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
+      if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
         message = "Incorrect email or password.";
       } else if (error.code === "auth/invalid-email") {
         message = "Invalid email format.";
@@ -129,6 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Email/Password Registration
   const signUpWithEmail = async (email: string, password: string) => {
     try {
+      const auth = getFirebaseAuth();
       const result = await createUserWithEmailAndPassword(auth, email, password);
       toast({
         title: "Account Created Successfully",
@@ -157,7 +189,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Google OAuth Login
   const loginWithGoogle = async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
+      const auth = getFirebaseAuth();
+      const result = await signInWithPopup(auth, getGoogleProvider());
       toast({
         title: "Signed In with Google",
         description: `Welcome, ${result.user.displayName || result.user.email}!`,
@@ -177,6 +210,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Log Out
   const logout = async () => {
     try {
+      const auth = getFirebaseAuth();
       await signOut(auth);
       toast({
         title: "Signed Out",
@@ -192,7 +226,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Save data to Supabase (Cloud Sync)
+  // BUG-2 fix: Save data via authenticated API route instead of direct Supabase client
   const triggerCloudSync = useCallback(async (
     semesters: Record<string, SemesterDetails>,
     selectedKey: string | null
@@ -204,22 +238,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSyncErrorMessage(null);
 
     try {
-      const { error } = await supabase.from("user_results").upsert({
-        firebase_uid: currentUser.uid,
+      await syncApiCall('POST', currentUser, {
         semesters_data: semesters,
         selected_semester_key: selectedKey,
-        updated_at: new Date().toISOString(),
       });
-
-      if (error) throw error;
 
       setSyncStatus("synced");
       setLastSyncedTime(new Date());
     } catch (error: any) {
-      console.error("Supabase Cloud Sync Error:", error);
+      console.error("Cloud Sync Error:", error);
       setSyncStatus("error");
-      setSyncErrorMessage(error.message || "Could not sync data to Supabase database.");
-      
+      setSyncErrorMessage(error.message || "Could not sync data to cloud.");
       // Notify user only periodically to avoid alert fatigue
       toast({
         title: "Cloud Sync Failed",
@@ -229,7 +258,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Fetch Cloud data and merge with Local Storage data
+  // BUG-2 fix: Fetch Cloud data via authenticated API route and merge with Local Storage data
   const pullAndMergeData = useCallback(async (
     localSemesters: Record<string, SemesterDetails>,
     localSelectedKey: string | null
@@ -246,22 +275,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSyncStatus("syncing");
 
     try {
-      const { data, error } = await supabase
-        .from("user_results")
-        .select("semesters_data, selected_semester_key")
-        .eq("firebase_uid", currentUser.uid)
-        .maybeSingle();
-
-      if (error) throw error;
+      const response = await syncApiCall('GET', currentUser);
+      const data = response.data;
 
       if (!data) {
-        // Cloud has no data yet, so upload current local storage data
-        await supabase.from("user_results").upsert({
-          firebase_uid: currentUser.uid,
-          semesters_data: localSemesters,
-          selected_semester_key: localSelectedKey,
-          updated_at: new Date().toISOString(),
-        });
+        // Cloud has no data yet.
+        // BUG-7 fix: Only upload if local data is not empty.
+        const hasLocalData = Object.keys(localSemesters).length > 0;
+        if (hasLocalData) {
+          await syncApiCall('POST', currentUser, {
+            semesters_data: localSemesters,
+            selected_semester_key: localSelectedKey,
+          });
+        }
         setSyncStatus("synced");
         setLastSyncedTime(new Date());
         return { mergedSemesters: localSemesters, mergedSelectedKey: localSelectedKey, synced: true };
@@ -278,11 +304,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // If changes occurred, save the merged result back to cloud immediately
       const hasChanges = JSON.stringify(mergedSem) !== JSON.stringify(cloudSemesters) || mergedKey !== cloudSelectedKey;
       if (hasChanges) {
-        await supabase.from("user_results").upsert({
-          firebase_uid: currentUser.uid,
+        await syncApiCall('POST', currentUser, {
           semesters_data: mergedSem,
           selected_semester_key: mergedKey,
-          updated_at: new Date().toISOString(),
         });
       }
 

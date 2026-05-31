@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import type { Course, SemesterDetails } from "@/types";
 import { AppHeader } from "@/components/layout/header";
 import { SemesterSelector } from "@/components/semester-selector";
@@ -104,41 +104,52 @@ export default function HomePage() {
   const { user, loading: authLoading, triggerCloudSync, pullAndMergeData } = useAuth();
   const [semestersData, setSemestersData] = useState<Record<string, SemesterDetails>>({});
   const [selectedSemesterKey, setSelectedSemesterKey] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // For initial load from localStorage
-  const [prevUser, setPrevUser] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load data and handle Cloud Sync/Merge on mount or when user changes
+  // BUG-9 fix: Use ref instead of state — prevUser is only used for logic, never rendered
+  const prevUserRef = useRef<string | null>(null);
+  // Refs to access current state in callbacks/cleanup without stale closures
+  const semestersDataRef = useRef(semestersData);
+  const selectedSemesterKeyRef = useRef(selectedSemesterKey);
+
+  useEffect(() => { semestersDataRef.current = semestersData; }, [semestersData]);
+  useEffect(() => { selectedSemesterKeyRef.current = selectedSemesterKey; }, [selectedSemesterKey]);
+
+  // BUG-1 fix: One-time mount effect — reads localStorage exactly once
   useEffect(() => {
-    const handleInitialLoadAndSync = async () => {
-      // 1. Read what's currently in localStorage first (as early fallback)
-      let currentLocalSemesters: Record<string, SemesterDetails> = {};
-      let currentLocalSelectedKey: string | null = null;
-      try {
-        const storedSemesters = localStorage.getItem("guruSemesters");
-        const storedSelectedSemester = localStorage.getItem("guruSelectedSemester");
-        if (storedSemesters) {
-          currentLocalSemesters = JSON.parse(storedSemesters);
-          setSemestersData(currentLocalSemesters);
-        }
-        if (storedSelectedSemester) {
-          currentLocalSelectedKey = JSON.parse(storedSelectedSemester);
-          setSelectedSemesterKey(currentLocalSelectedKey);
-        }
-      } catch (error) {
-        console.error("Failed to load data from localStorage", error);
+    try {
+      const storedSemesters = localStorage.getItem("guruSemesters");
+      const storedSelectedSemester = localStorage.getItem("guruSelectedSemester");
+      if (storedSemesters) {
+        const parsed = JSON.parse(storedSemesters);
+        setSemestersData(parsed);
+        semestersDataRef.current = parsed;
       }
+      if (storedSelectedSemester) {
+        const parsed = JSON.parse(storedSelectedSemester);
+        setSelectedSemesterKey(parsed);
+        selectedSemesterKeyRef.current = parsed;
+      }
+    } catch (error) {
+      console.error("Failed to load data from localStorage", error);
+    }
+    setIsLoading(false);
+  }, []);
 
-      // 2. If auth is still loading, wait for it
-      if (authLoading) return;
+  // BUG-1 fix: Separate auth transition effect — merges cloud data on login
+  // without re-reading localStorage (uses refs to access current React state)
+  useEffect(() => {
+    if (authLoading) return;
 
-      // 3. If a user just logged in (transitioned from logged out to logged in)
-      if (user && prevUser !== user.uid) {
-        // Fetch from cloud and merge
-        const result = await pullAndMergeData(currentLocalSemesters, currentLocalSelectedKey);
+    if (user && prevUserRef.current !== user.uid) {
+      const doMerge = async () => {
+        const result = await pullAndMergeData(
+          semestersDataRef.current,
+          selectedSemesterKeyRef.current
+        );
         if (result.synced) {
           setSemestersData(result.mergedSemesters);
           setSelectedSemesterKey(result.mergedSelectedKey);
-          // Persist merged data to localStorage
           localStorage.setItem("guruSemesters", JSON.stringify(result.mergedSemesters));
           if (result.mergedSelectedKey) {
             localStorage.setItem("guruSelectedSemester", JSON.stringify(result.mergedSelectedKey));
@@ -146,16 +157,25 @@ export default function HomePage() {
             localStorage.removeItem("guruSelectedSemester");
           }
         }
-        setPrevUser(user.uid);
-      } else if (!user) {
-        setPrevUser(null);
-      }
-
-      setIsLoading(false);
-    };
-
-    handleInitialLoadAndSync();
+        prevUserRef.current = user.uid;
+      };
+      doMerge();
+    } else if (!user) {
+      prevUserRef.current = null;
+    }
   }, [user, authLoading, pullAndMergeData]);
+
+  // BUG-3 fix: Sync immediately when tab becomes hidden to prevent
+  // data loss if the 1.5s debounce timer hasn't fired yet
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && user) {
+        triggerCloudSync(semestersDataRef.current, selectedSemesterKeyRef.current);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [user, triggerCloudSync]);
 
   // Save data to localStorage immediately, and to cloud with a debounce delay
   useEffect(() => {
