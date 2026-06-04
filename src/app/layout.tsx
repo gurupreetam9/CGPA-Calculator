@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider'; // Import ThemeProvider
 import { AuthProvider } from '@/hooks/use-auth';
+import { Analytics } from '@vercel/analytics/next';
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -44,6 +45,7 @@ export default function RootLayout({
             <Toaster />
           </AuthProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
